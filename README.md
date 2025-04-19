@@ -10,6 +10,7 @@ This project is focused on booting an ARMv7 processor using QEMU and GDB, primar
   - [Table of Contents](#table-of-contents)
 - [Dependencies](#dependencies)
 - [How](#how)
+  - [To build and run the project:](#to-build-and-run-the-project)
 - [Scheduling](#scheduling)
   - [Resources](#resources)
 - [What and Why Nix?](#what-and-why-nix)
@@ -38,6 +39,17 @@ Nix(package manager):
 - [nixfmt](https://github.com/NixOS/nixfmt) (optional)
 
 # How
+
+> [!IMPORTANT]
+> The Makefile contains targets for both the Nix package manager and Ubuntu/Debian packages. The targets starting with `nix.` should be fully functional on any machine that supports the nix-shell environment.
+
+
+## To build and run the project:
+
+1. Run `make qemuA8` to execute the project on QEMU.
+2. Open a new terminal and run `make debug` to start debugging the project.
+   - You can also open DDD locally (or any other GUI debugger) and connect to the debug session.
+   - To launch DDD with the Nix environment, run: `make nix.ddd.debug`.
 
 Project's sructure:
 
@@ -74,15 +86,6 @@ To compile the `rust` drivers defined by `kernel/rs/drivers.rs` run the make com
 ```sh
 make build RS=1
 ```
-
-> [!IMPORTANT]
-> The Makefile contains targets for both the Nix package manager and Ubuntu/Debian packages. The targets starting with `nix.` should be fully functional on any machine that supports the nix-shell environment.
-
-To build and run a tagged release:
-1. Check out the desired tag using the command `git checkout tags/<tag_name>`.
-2. Execute `make build` to build the project.
-3. Run `make qemuA8` to execute the project on QEMU.
-4. Open a new terminal and run `make debug` to debug the project.
 
 # Scheduling
 

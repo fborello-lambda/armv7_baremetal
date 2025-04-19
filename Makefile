@@ -35,14 +35,14 @@ else
 	ALL_OBJ_FILES := $(ALL_C_OBJ_FILES)
 endif
 
-all:
-	$(MAKE) build RS=1
-.PHONY: all
+.DEFAULT_GOAL := help
 
+## Build the project using nix-shell
 nix.build: clean
 	nix-shell --run "make bin/image.bin"
 .PHONY: nix.build
 
+## Build the project
 build: clean bin/image.bin
 .PHONY: build
 
@@ -82,16 +82,21 @@ obj/kernel_rs/drivers.o: kernel/rs/drivers.rs
 	rustc -Copt-level=s --emit=obj $< --target=armv7a-none-eabi -o $@
 
 DISASM := obj/image.elf
-# Objdump
+
+## Run objdump using nix-shell
 nix.objdump:
 	nix-shell --run "arm-none-eabi-objdump -d $(DISASM)"
+.PHONY: nix.objdump
 
+## Run objdump
 objdump:
 	arm-none-eabi-objdump -d $(DISASM)
+.PHONY: objdump
 
 
 LOG_FILE ?= gdb_session0.log
-# Debug
+
+## Debug the project using GDB with nix-shell
 nix.debug: obj/image.elf
 	nix-shell --run  'gdb -q \
 	-ex "target remote :2159" \
@@ -102,6 +107,7 @@ nix.debug: obj/image.elf
 	$<'
 .PHONY: nix.debug
 
+## Debug the project using GDB
 debug: obj/image.elf
 	gdb-multiarch -q \
 	-ex "target remote :2159" \
@@ -111,7 +117,16 @@ debug: obj/image.elf
 	$<
 .PHONY: debug
 
-# QEMU
+## Debug the project using DDD and nix-shell, attach to localhost:2159
+nix.ddd.debug: obj/image.elf
+	nix-shell --run 'ddd \
+		--debugger "gdb \
+			-iex '\''set auto-load safe-path /'\'' \
+			-ex '\''target remote localhost:2159'\''" \
+		obj/image.elf'
+.PHONY: nix.ddd.debug
+
+## Run QEMU with ARMv7 architecture using nix-shell
 nix.qemuA8: bin/image.bin
 	nix-shell --run "qemu-system-arm \
 	-M realview-pb-a8 -m 32M \
@@ -120,6 +135,7 @@ nix.qemuA8: bin/image.bin
 	-kernel $< -S -gdb tcp::2159"
 .PHONY: nix.qemuA8
 
+## Run QEMU with ARMv7 architecture
 qemuA8: bin/image.bin
 	qemu-system-arm \
 	-M realview-pb-a8 -m 32M \
@@ -128,39 +144,35 @@ qemuA8: bin/image.bin
 	-kernel $< -S -gdb tcp::2159
 .PHONY: qemuA8
 
-# Format
+## Format the Nix file
 nix.fmt:
 	nixfmt shell.nix
 .PHONY: nix.fmt
 
+## Format C files using clang-format with nix-shell
 nix.cfmt:
 	nix-shell --run "clang-format -i kernel/*.c kernel/inc/*.h"
 .PHONY: nix.cfmt
 
+## Format C files using clang-format
 cfmt:
 	clang-format -i kernel/*.c kernel/inc/*.h
 .PHONY: cfmt
 
-# Clean target
+## Clean up generated files
 clean:
 	rm -rf obj/*
 	rm -rf bin/*
 .PHONY: clean
 
-# Help target
+## Show this help
 help:
-	@echo -n "\033[38;5;196mA\033[0mv\033[38;5;202ma\033[0\033[0mi\033[38;5;214ml\033[0ma\033[38;5;220mb\033[0ml\033[38;5;226me\033[0m \033[38;5;190mt\033[0ma\033[38;5;154mr\033[0mg\033[38;5;118me\033[0mt\033[38;5;82ms\033[0m:\n"
-	@echo "\e[92mnix.build\e[0m     : Build the project using nix-shell"
-	@echo "\e[92mbuild\e[0m         : Build the project"
-	@echo "\e[92mnix.objdump\e[0m   : Run objdump using nix-shell"
-	@echo "\e[92mobjdump\e[0m       : Run objdump"
-	@echo "\e[92mnix.debug\e[0m     : Debug the project using GDB with nix-shell"
-	@echo "\e[92mdebug\e[0m         : Debug the project using GDB"
-	@echo "\e[92mnix.qemuA8\e[0m    : Run QEMU with ARMv7 architecture using nix-shell"
-	@echo "\e[92mqemuA8\e[0m        : Run QEMU with ARMv7 architecture"
-	@echo "\e[92mnix.fmt\e[0m       : Format the Nix file"
-	@echo "\e[92mcfmt\e[0m          : Format C files using clang-format"
-	@echo "\e[92mnix.cfmt\e[0m      : Format C files using clang-format with nix-shell"
-	@echo "\e[92mclean\e[0m         : Clean up generated files"
-	@echo "\e[92m<target>\e[0m \e[92mRS=1\e[0m : Compile and link the Rust drivers defined by kernel/rs/drivers.rs"
+	@echo "\033[1;36mAvailable make targets:\033[0m"
+	@awk ' \
+		/^##/ { help = substr($$0, 4); getline; \
+			if ($$0 ~ /^([a-zA-Z0-9_.-]+):/) { \
+				target = gensub(/^([a-zA-Z0-9_.-]+):.*/, "\\1", "g", $$0); \
+				printf "  \033[1;33m%-15s\033[0m - %s\n", target, help; \
+			} \
+		}' $(MAKEFILE_LIST)
 .PHONY: help

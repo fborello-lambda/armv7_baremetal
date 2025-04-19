@@ -11,6 +11,7 @@ stdenv.mkDerivation {
     gdb
     clang-tools
     rustup
+    ddd
   ];
   shellHook = ''
     rustup default stable

@@ -10,6 +10,7 @@
 
 void c_mmu_init();
 int32_t c_mmu_map_4kb_page(uint32_t virt_addr, uint32_t phys_addr);
-int32_t identity_map_region(uint32_t virt_addr, uint32_t phys_addr, uint32_t size_in_kb);
+int32_t identity_map_region(uint32_t virt_addr, uint32_t phys_addr,
+                            uint32_t size_in_kb);
 
 #endif // __MMU_LIB_H__

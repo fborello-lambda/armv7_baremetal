@@ -1,9 +1,9 @@
 #include "inc/gic.h"
+#include "inc/mmu.h"
 #include "inc/sched.h"
 #include "inc/tasks.h"
 #include "inc/timer.h"
 #include "inc/uart.h"
-#include "inc/mmu.h"
 
 extern __attribute__((section(".text"))) void c_board_init(void) {
   c_mmu_init();

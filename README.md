@@ -21,6 +21,7 @@ This project is focused on booting an ARMv7 processor using QEMU and GDB, primar
     - [UART PL011](#uart-pl011)
     - [GIC](#gic)
     - [TIMER](#timer)
+    - [MMU](#mmu)
     - [Videos](#videos)
     - [Online Emulator](#online-emulator)
     - [GDB extras](#gdb-extras)
@@ -187,6 +188,12 @@ Exceptions take into account the interrupts (`IRQs`): [Guide for ARMv7-A | Types
 
 ### TIMER
 - [ARM Dual-Timer Module (SP804) Technical Reference Manual r1p0](https://developer.arm.com/documentation/ddi0271/d/programmer-s-model/summary-of-registers)
+
+### MMU
+
+- [ARM Cortex-A Series Programmer's Guide for ARMv7-A - The MMU](https://developer.arm.com/documentation/den0013/d/The-Memory-Management-Unit)
+- [ARM Architecture Reference Manual ARMv7-A and ARMv7-R edition - VMSA](https://developer.arm.com/documentation/ddi0406/cb/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-?lang=en)
+- [ARM Architecture Reference Manual ARMv7-A and ARMv7-R - DACR register](https://developer.arm.com/documentation/ddi0406/c/System-Level-Architecture/System-Control-Registers-in-a-VMSA-implementation/VMSA-System-control-registers-descriptions--in-register-order/DACR--Domain-Access-Control-Register--VMSA)
 
 ### Videos
 

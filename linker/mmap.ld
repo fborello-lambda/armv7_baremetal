@@ -4,6 +4,8 @@ ENTRY(_vector_table)
 
 _PUBLIC_RAM_INIT        = 0x70010000;
 _STACK_INIT             = 0x70020000;
+/* Define a region to start the translation tables used by the MMU */
+_MMU_INIT        	    = 0x70080000;
 
 _SYS_STACK_SIZE         = 8K;
 _ABT_STACK_SIZE         = 1K;
@@ -11,15 +13,19 @@ _SVC_STACK_SIZE         = 2K;
 _IRQ_STACK_SIZE         = 1K;
 _UND_STACK_SIZE         = 1K;
 
-_TOTAL_STACK_SIZE       = _ABT_STACK_SIZE + _SVC_STACK_SIZE + _IRQ_STACK_SIZE + _UND_STACK_SIZE + _SYS_STACK_SIZE;
-
+_STACK_SIZE             = _ABT_STACK_SIZE + _SVC_STACK_SIZE + _IRQ_STACK_SIZE + _UND_STACK_SIZE + _SYS_STACK_SIZE;
 _TASK_STACK_SIZE        = 1K;
+_TOTAL_STACK_SIZE       = _STACK_SIZE + 8 * _TASK_STACK_SIZE;
 
-_TOTAL_STACK_SIZE       = _TOTAL_STACK_SIZE + 8 * _TASK_STACK_SIZE;
+
+_PAGE_SIZE_L1       	= 16K;
+_PAGE_SIZE_L2       	= 1K;
+_TOTAL_MMU_REGION_SIZE  = _PAGE_SIZE_L1 + 4 * _PAGE_SIZE_L2;
 
 MEMORY {
     PUBLIC_RAM : ORIGIN = _PUBLIC_RAM_INIT, LENGTH = 16K
     PUBLIC_STACK : ORIGIN = _STACK_INIT, LENGTH = _TOTAL_STACK_SIZE /* 21K */
+    MMU_REGION : ORIGIN = _MMU_INIT, LENGTH = _TOTAL_MMU_REGION_SIZE /* 16K + 4K */
 }
 
 /* It starts from the bottom and grows upwards */
@@ -42,6 +48,17 @@ SECTIONS {
         *(.bss*)
         __bss_end__ = .;
     } > PUBLIC_RAM
+
+	.tables : {
+    	/* The alignment is for the table size */
+    	. = ALIGN(16K);
+    	__l1_table_start__ = .;
+    	*(.l1_table*)
+    	__l1_table_end__ = .;
+    	__l2_tables_start__ = .;
+    	*(.l2_table*)
+    	__l2_tables_end__ = .;
+	} > MMU_REGION
 
     /* 16-byte alignment is sometimes used to ensure compatibility
     with SIMD (Single Instruction, Multiple Data) instructions,

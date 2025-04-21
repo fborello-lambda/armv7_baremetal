@@ -1,9 +1,9 @@
-.global _start
+.global main
 .extern c_board_init
 .extern c_putsln
 
-.section .text._start
-_start: 
+.section .text.main
+main: 
     // Init Board
     ldr r10, =c_board_init
     blx r10

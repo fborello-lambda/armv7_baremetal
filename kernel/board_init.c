@@ -5,8 +5,10 @@
 #include "inc/timer.h"
 #include "inc/uart.h"
 
+extern uint32_t l1_table[];
+
 extern __attribute__((section(".text"))) void c_board_init(void) {
-  c_mmu_init();
+  c_mmu_init(l1_table);
   c_gic_init();
   c_timer_init();
 

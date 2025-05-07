@@ -13,10 +13,10 @@
 #define ERROR_L2_IN_USE -3
 #define PAGING_SUCCESS 0
 
-void c_mmu_init();
-int32_t c_mmu_map_4kb_page(uint32_t virt_addr, uint32_t phys_addr,
-                           uint32_t l2_flags);
-int32_t identity_map_region(uint32_t virt_addr, uint32_t phys_addr,
-                            uint32_t size_in_kb);
+void c_mmu_init(uint32_t *ttbr0);
+int32_t c_mmu_map_4kb_page(uint32_t *ttbr0, uint32_t virt_addr,
+                           uint32_t phys_addr, uint32_t l2_flags);
+int32_t identity_map_region(uint32_t *ttbr0, uint32_t virt_addr,
+                            uint32_t phys_addr, uint32_t size_in_kb);
 
 #endif // __MMU_LIB_H__

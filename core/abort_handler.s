@@ -1,4 +1,7 @@
 .global _abort_handler
+
+.extern c_abort_handler
+
 .section .text._abort_handler
 
 # Following:

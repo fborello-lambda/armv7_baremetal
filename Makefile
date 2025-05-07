@@ -80,7 +80,7 @@ objdump: ## Run objdump
 	arm-none-eabi-objdump -d $(DISASM)
 .PHONY: objdump
 
-nix.debug: obj/image.elf ## Debug the project using GDB with nix-shell
+nix.debug: ## Debug the project using GDB with nix-shell
 	nix-shell --run  'gdb -q \
 	-ex "target remote :2159" \
 	-ex "set logging file ${LOG_FILE}" \
@@ -99,7 +99,7 @@ debug: obj/image.elf ## Debug the project using GDB
 	$<
 .PHONY: debug
 
-nix.ddd.debug: obj/image.elf ## Debug the project using DDD and nix-shell, attach to localhost:2159
+nix.ddd.debug: ## Debug the project using DDD and nix-shell, attach to localhost:2159
 	nix-shell --run 'ddd \
 		--debugger "gdb \
 			-iex '\''set auto-load safe-path /'\'' \
@@ -143,7 +143,10 @@ clean: ## Clean up generated files
 help: ## Show available make targets
 	@echo "\033[1;36mAvailable make targets:\033[0m"
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  \033[1;33m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
-	@echo "\033[1;36m\nCommon Usage:\033[0m"
-	@echo "  - Use \033[1;33mnix.qemuA8\033[0m to start the QEMU server using nix-shell."
-	@echo "  - Then in a new terminal use \033[1;33mnix.ddd.debug\033[0m to attach DDD(GDB GUI) to the QEMU server."
+	@echo "\033[1;36m\nCommon Usage with nix:\033[0m"
+	@echo "  - Use \033[1;33mmake nix.build nix.qemuA8\033[0m to start the QEMU server using nix-shell."
+	@echo "  - Then in a new terminal use \033[1;33mmake nix.ddd.debug\033[0m to attach DDD(GDB GUI) to the QEMU server."
+	@echo "\033[1;36m\nCommon Usage without nix (you can attach any GDB GUI, using the above target as example):\033[0m"
+	@echo "  - Use \033[1;33mmake qemuA8\033[0m to start the QEMU server using nix-shell."
+	@echo "  - Then in a new terminal use \033[1;33mmake nix.ddd.debug\033[0m to attach DDD(GDB GUI) to the QEMU server."
 .PHONY: help

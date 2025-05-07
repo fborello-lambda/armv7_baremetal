@@ -17,15 +17,16 @@ _STACK_SIZE             = _ABT_STACK_SIZE + _SVC_STACK_SIZE + _IRQ_STACK_SIZE + 
 _TASK_STACK_SIZE        = 1K;
 _TOTAL_STACK_SIZE       = _STACK_SIZE + 8 * _TASK_STACK_SIZE;
 
-
+/* Has to match the kernel/inc/sched.h define statement */
+MAX_TASKS               = 4;
 _PAGE_SIZE_L1       	= 16K;
 _PAGE_SIZE_L2       	= 1K;
-_TOTAL_MMU_REGION_SIZE  = _PAGE_SIZE_L1 + 4 * _PAGE_SIZE_L2;
+_TOTAL_MMU_REGION_SIZE  = (_PAGE_SIZE_L1 + 4 * _PAGE_SIZE_L2) * MAX_TASKS;
 
 MEMORY {
     PUBLIC_RAM : ORIGIN = _PUBLIC_RAM_INIT, LENGTH = 16K
     PUBLIC_STACK : ORIGIN = _STACK_INIT, LENGTH = _TOTAL_STACK_SIZE /* 21K */
-    MMU_REGION : ORIGIN = _MMU_INIT, LENGTH = _TOTAL_MMU_REGION_SIZE /* 16K + 4K */
+    MMU_REGION : ORIGIN = _MMU_INIT, LENGTH = _TOTAL_MMU_REGION_SIZE /* (16K + 4K) * 4 */
 }
 
 /* It starts from the bottom and grows upwards */

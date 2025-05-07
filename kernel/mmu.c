@@ -21,11 +21,12 @@ static void clear_memory(void *addr, uint32_t size_in_bytes) {
 #define L2_ENTRIES 0x100 // 256 entries
 #define L2_SIZE 0x0400   // 1KB (256 * 4 bytes)
 
-extern uint32_t __l1_table_end__[];
+// extern uint32_t __l1_table_end__[];
 
 static uint32_t l1_table[L1_ENTRIES]
     __attribute__((section(".l1_table"), aligned(L1_ALIGN))) = {0};
-static uintptr_t next_l2_addr = (uintptr_t)__l1_table_end__;
+// static uintptr_t next_l2_addr = (uintptr_t)__l1_table_end__;
+static uintptr_t next_l2_addr = (uintptr_t)l1_table + L1_SIZE;
 
 __attribute__((section(".text"))) void c_mmu_init() {
   // 1. Clean all Entries.

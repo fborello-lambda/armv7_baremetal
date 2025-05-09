@@ -3,6 +3,11 @@
 #include "inc/timer.h"
 #include "inc/uart.h"
 #include <stdio.h>
+#include <string.h>
+
+uint32_t g_kernel_l1_table[L1_ENTRIES]
+    __attribute__((section(".l1_table"), aligned(L1_ALIGN))) = {0};
+uintptr_t next_l2_addr = (uintptr_t)g_kernel_l1_table + L1_SIZE;
 
 // Clears memory
 static void clear_memory(void *addr, uint32_t size_in_bytes) {
@@ -14,45 +19,31 @@ static void clear_memory(void *addr, uint32_t size_in_bytes) {
   }
 }
 
-#define L1_ENTRIES 0x1000 // 4096 entries
-#define L1_SIZE 0x4000    // 16KB (4096 * 4 bytes)
-#define L1_ALIGN 0x4000   // 16KB alignment
-
-#define L2_ENTRIES 0x100 // 256 entries
-#define L2_SIZE 0x0400   // 1KB (256 * 4 bytes)
-
-// extern uint32_t __l1_table_end__[];
-
-uint32_t l1_table[L1_ENTRIES]
-    __attribute__((section(".l1_table"), aligned(L1_ALIGN))) = {0};
-// static uintptr_t next_l2_addr = (uintptr_t)__l1_table_end__;
-uintptr_t next_l2_addr = (uintptr_t)l1_table + L1_SIZE;
-
-__attribute__((section(".text"))) void c_mmu_init(uint32_t *ttbr0) {
+__attribute__((section(".text"))) void c_mmu_init(uint32_t *base_l1_addr) {
   // 1. Clean all Entries.
-  clear_memory(ttbr0, L1_SIZE);
+  clear_memory(base_l1_addr, L1_SIZE);
 
   // Map the MMU tables
   // Map 20 KB region starting at virtual 0x70080000 to physical 0x70080000
-  identity_map_region(ttbr0, 0x70080000, 0x70080000, 20);
+  identity_map_region(base_l1_addr, 0x70080000, 0x70080000, 20);
 
   // Vector Table // Just some bytes are needed.
-  c_mmu_map_4kb_page(ttbr0, 0x00000000, 0x00000000, L2_DEFAULT_FLAGS);
+  c_mmu_map_4kb_page(base_l1_addr, 0x00000000, 0x00000000, L2_DEFAULT_FLAGS);
 
   // Map the PUBLIC_RAM
   // Map 16 KB region starting at virtual 0x70010000 to physical 0x70010000
-  identity_map_region(ttbr0, 0x70010000, 0x70010000, 16);
+  identity_map_region(base_l1_addr, 0x70010000, 0x70010000, 16);
 
   // Map the STACK
   // Map 21 KB region starting at virtual 0x70020000 to physical 0x70020000
-  identity_map_region(ttbr0, 0x70020000, 0x70020000, 21);
+  identity_map_region(base_l1_addr, 0x70020000, 0x70020000, 21);
 
   // Map UART0_ADRR, GICC0_ADDR, GICD0_ADDR, TIMER0_ADDR on demand.
   // The _abort_handler calls the c_abort_handler and maps the
   // address that couldn't be accessed.
 
   // 2. Set TTBR0 to the L1 table base address
-  __asm__ volatile("mcr p15, 0, %0, c2, c0, 0" : : "r"(ttbr0));
+  __asm__ volatile("mcr p15, 0, %0, c2, c0, 0" : : "r"(base_l1_addr));
   // 3. Set DACR to manager (all access)
   __asm__ volatile("ldr r0, =0xFFFFFFFF\n"
                    "mcr p15, 0, r0, c3, c0, 0\n" ::
@@ -68,7 +59,7 @@ __attribute__((section(".text"))) void c_mmu_init(uint32_t *ttbr0) {
 // Maps a 4KB page
 // Requires a Virtual and Physical address.
 // The Virtual address is mapped to the Physical address.
-int32_t c_mmu_map_4kb_page(uint32_t *ttbr0, uint32_t virt_addr,
+int32_t c_mmu_map_4kb_page(uint32_t *base_l1_addr, uint32_t virt_addr,
                            uint32_t phys_addr, uint32_t l2_flags) {
   // Obtain the index within the L1 page.
   // For example, if it is 0x7012_0000 >> 20
@@ -84,19 +75,20 @@ int32_t c_mmu_map_4kb_page(uint32_t *ttbr0, uint32_t virt_addr,
   // We are checking if the entry at the l1_index
   // obtained above has something.
   // Basically checking the first 2 bits.
-  if ((ttbr0[l1_index] & 0x3) == 0) {
+  if ((base_l1_addr[l1_index] & 0x3) == 0) {
     // Allocate a new L2 table at next_l2_addr
     l2_table = (uint32_t *)next_l2_addr;
     clear_memory(l2_table, L2_SIZE);
 
     // Update L1 entry to point to new L2 table with coarse table flag
-    ttbr0[l1_index] = ((uintptr_t)l2_table & 0xFFFFFC00) | L1_TYPE_COARSE_TABLE;
+    base_l1_addr[l1_index] =
+        ((uintptr_t)l2_table & 0xFFFFFC00) | L1_TYPE_COARSE_TABLE;
 
     // Advance next_l2_addr for next allocation
     next_l2_addr += L2_SIZE;
   } else {
     // L2 table already exists, get its address from L1 entry
-    l2_table = (uint32_t *)(l1_table[l1_index] & 0xFFFFFC00);
+    l2_table = (uint32_t *)(base_l1_addr[l1_index] & 0xFFFFFC00);
   }
 
   // Calculate L2 index (bits [19:12])
@@ -121,18 +113,18 @@ int32_t c_mmu_map_4kb_page(uint32_t *ttbr0, uint32_t virt_addr,
 }
 
 // Maps a region of size_in_kb (rounded up to 4KB pages)
-int32_t identity_map_region(uint32_t *ttbr0, uint32_t virt_addr,
+int32_t identity_map_region(uint32_t *base_l1_addr, uint32_t virt_addr,
                             uint32_t phys_addr, uint32_t size_in_kb) {
   uint32_t size_bytes = size_in_kb * 1024;
   // Calculate number of 4KB pages (round up)
   uint32_t pages = (size_bytes + 0xFFF) / 0x1000;
 
   for (uint32_t i = 0; i < pages; i++) {
-    int ret = c_mmu_map_4kb_page(ttbr0, virt_addr + i * 0x1000,
+    int ret = c_mmu_map_4kb_page(base_l1_addr, virt_addr + i * 0x1000,
                                  phys_addr + i * 0x1000, L2_DEFAULT_FLAGS);
-    if (ret != 0) {
+    if (ret != PAGING_SUCCESS) {
       return ret;
     }
   }
-  return 0;
+  return PAGING_SUCCESS;
 }

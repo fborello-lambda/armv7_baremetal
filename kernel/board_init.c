@@ -8,7 +8,6 @@
 extern uint32_t g_kernel_l1_table[];
 
 extern __attribute__((section(".text"))) void c_board_init(void) {
-  c_mmu_init(g_kernel_l1_table);
   c_gic_init();
   c_timer_init();
 
@@ -18,6 +17,7 @@ extern __attribute__((section(".text"))) void c_board_init(void) {
   c_UART0_init();
 
   // Init Tasks / Scheduler
+  // It also fills the tables needed to start the MMU
   c_scheduler_init();
 
   c_putsln("Should not reach here");

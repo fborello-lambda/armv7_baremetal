@@ -1,4 +1,5 @@
 #include "inc/sched.h"
+#include "inc/mmu.h"
 #include "inc/tasks.h"
 #include "inc/uart.h"
 #include <stddef.h>
@@ -34,6 +35,10 @@ extern uint32_t __task3_irq_sp;
 uint32_t *task_irq_sp[] = {&__task0_irq_sp, &__task1_irq_sp, &__task2_irq_sp,
                            &__task3_irq_sp};
 
+/* MMU */
+extern uint32_t *g_next_l2_addr;
+extern uint32_t g_kernel_l1_table[];
+
 __attribute__((section(".text"))) void c_task_init(_task_ptr_t entrypoint,
                                                    _systick_t ticks) {
 
@@ -66,6 +71,28 @@ __attribute__((section(".text"))) void c_task_init(_task_ptr_t entrypoint,
     tasks[task_index].irq_sp -= 1;
     *tasks[task_index].irq_sp = save_sp;
 
+    // Set the TTBR0 address for each task
+    uint32_t *ttbr0;
+    if (task_index == 0) {
+      // Means it's the kernel/idle task
+      ttbr0 = g_kernel_l1_table;
+    } else {
+      // The g_next_l2_addr will be pointing to the end
+      // of the following structure:
+      // L1 16KB
+      // 4*L2 1KB
+      // So, we set the TTBR0 of the task to the new L1_TABLE
+      // And then we init the MMU with it
+      ttbr0 = g_next_l2_addr;
+    }
+    tasks[task_index].ttbr0 = ttbr0;
+    // TODO, the -1024 is to match the length of the stack
+    // the arrays store the sp_end position, we need the sp_start
+    // Remember that the stack starts from a low memory position
+    // and goes to a higher memory addr.
+    c_mmu_fill_tables(ttbr0, (uint32_t)task_sp[task_index] - 1024,
+                      (uint32_t)task_irq_sp[task_index] - 1024);
+
     task_index++;
   }
 }
@@ -76,6 +103,11 @@ __attribute__((section(".text"))) void c_scheduler_init(void) {
   c_task_init(task2, 12u);
   c_task_init(task3, 5u);
   current_task = &tasks[0];
+
+  // Set the TTBR0 register
+  asm volatile("mcr p15, 0, %0, c2, c0, 0" : : "r"(current_task->ttbr0));
+  // Start the MMU
+  c_mmu_init();
 
   c_putsln("Board init done");
 
@@ -116,6 +148,8 @@ __attribute__((section(".text"))) uint32_t c_scheduler(_ctx_t *ctx) {
                  : "=r"(current_task->svc_sp));
     // Switch back to IRQ mode
     asm volatile("cps #0x12");
+    // Set the TTBR0 of the current_task
+    __asm__ volatile("mcr p15, 0, %0, c2, c0, 0" : : "r"(current_task->ttbr0));
 
     c_puts_hex(current_task->id);
     c_putchar('\n');

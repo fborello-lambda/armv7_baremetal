@@ -67,7 +67,7 @@ SECTIONS {
     which often require 16-byte alignment for their data.*/
     .stack (NOLOAD) : {
         . = ALIGN(16);
-        _stack_end = .;
+        __stack_end = .;
 
         /* 0x70020000 */
         _sys_stack_end = .;

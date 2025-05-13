@@ -36,8 +36,7 @@ uint32_t *task_irq_sp[] = {&__task0_irq_sp, &__task1_irq_sp, &__task2_irq_sp,
                            &__task3_irq_sp};
 
 /* MMU */
-extern uint32_t *g_next_l2_addr;
-extern uint32_t g_kernel_l1_table[];
+mmu_tables_t mmu_tables[MAX_TASKS] __attribute__((section(".mmu_tables")));
 
 __attribute__((section(".text"))) void c_task_init(_task_ptr_t entrypoint,
                                                    _systick_t ticks) {
@@ -72,26 +71,15 @@ __attribute__((section(".text"))) void c_task_init(_task_ptr_t entrypoint,
     *tasks[task_index].irq_sp = save_sp;
 
     // Set the TTBR0 address for each task
-    uint32_t *ttbr0;
-    if (task_index == 0) {
-      // Means it's the kernel/idle task
-      ttbr0 = g_kernel_l1_table;
-    } else {
-      // The g_next_l2_addr will be pointing to the end
-      // of the following structure:
-      // L1 16KB
-      // 4*L2 1KB
-      // So, we set the TTBR0 of the task to the new L1_TABLE
-      // And then we init the MMU with it
-      ttbr0 = g_next_l2_addr;
-    }
+    uint32_t *ttbr0 = (uint32_t *)&mmu_tables[task_index];
     tasks[task_index].ttbr0 = ttbr0;
     // TODO, the -1024 is to match the length of the stack
     // the arrays store the sp_end position, we need the sp_start
     // Remember that the stack starts from a low memory position
     // and goes to a higher memory addr.
-    c_mmu_fill_tables(ttbr0, (uint32_t)task_sp[task_index] - 1024,
-                      (uint32_t)task_irq_sp[task_index] - 1024);
+    c_mmu_fill_tables(&mmu_tables[task_index],
+                      (uint32_t)task_sp[task_index] - (1024 * 4),
+                      (uint32_t)task_irq_sp[task_index] - (1024 * 4));
 
     task_index++;
   }

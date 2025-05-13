@@ -13,5 +13,8 @@ __attribute__((section(".text._abort_handler"))) uint32_t c_abort_handler() {
   uint32_t *ttbr0;
   __asm__ volatile("mrc p15, 0, %0, c2, c0, 0" : "=r"(ttbr0));
 
-  return c_mmu_map_4kb_page(ttbr0, fault_addr, fault_addr, L2_DEFAULT_FLAGS);
+  // The ttbr0 is the base address of the L1 table
+  // which is the base address of the mmu_tables_t structure.
+  mmu_tables_t *tables = (mmu_tables_t *)ttbr0;
+  return c_mmu_map_4kb_page(tables, fault_addr, fault_addr, L2_DEFAULT_FLAGS);
 }

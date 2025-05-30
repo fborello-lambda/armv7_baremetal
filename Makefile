@@ -109,7 +109,7 @@ nix.ddd.debug: ## Debug the project using DDD and nix-shell, attach to localhost
 
 nix.qemuA8: bin/image.bin ## Run QEMU with ARMv7 architecture using nix-shell
 	nix-shell --run "qemu-system-arm \
-	-M realview-pb-a8 -m 32M \
+	-M realview-pb-a8 -m 64M \
 	-no-reboot -nographic \
 	-monitor telnet:127.0.0.1:1234,server,nowait \
 	-kernel $< -S -gdb tcp::2159"
@@ -117,7 +117,7 @@ nix.qemuA8: bin/image.bin ## Run QEMU with ARMv7 architecture using nix-shell
 
 qemuA8: bin/image.bin ## Run QEMU with ARMv7 architecture
 	qemu-system-arm \
-	-M realview-pb-a8 -m 32M \
+	-M realview-pb-a8 -m 64M \
 	-no-reboot -nographic \
 	-monitor telnet:127.0.0.1:1234,server,nowait \
 	-kernel $< -S -gdb tcp::2159

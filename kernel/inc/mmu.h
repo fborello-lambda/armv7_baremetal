@@ -33,8 +33,7 @@ typedef struct {
 #define ERROR_L2_IN_USE -3
 #define PAGING_SUCCESS 0
 
-void c_mmu_fill_tables(mmu_tables_t *tables, uint32_t base_svc_stack_addr,
-                       uint32_t base_irq_stack_addr);
+void c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id);
 void c_mmu_init(void);
 int32_t c_mmu_map_4kb_page(mmu_tables_t *tables, uint32_t virt_addr,
                            uint32_t phys_addr, uint32_t l2_flags);

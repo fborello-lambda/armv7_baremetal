@@ -3,46 +3,46 @@ OUTPUT_ARCH(arm)
 ENTRY(_vector_table)
 
 /* Kernel .bss */
-_KERNEL_BSS_LMA         = 0x71022000;
+_KERNEL_BSS_PHY         = 0x0;
 _KERNEL_BSS_VMA         = 0x70022000;
 /* Kernel .rodata */
-_KERNEL_RODATA_LMA      = 0x71023000;
+_KERNEL_RODATA_PHY      = 0x0;
 _KERNEL_RODATA_VMA      = 0x70023000;
 /* Kernel .text */
-_KERNEL_TEXT_LMA        = 0x71030000;
+_KERNEL_TEXT_PHY        = 0x0;
 _KERNEL_TEXT_VMA        = 0x70030000;
 /* Kernel .data */
-_KERNEL_DATA_LMA        = 0x71031000;
+_KERNEL_DATA_PHY        = 0x0;
 _KERNEL_DATA_VMA        = 0x70031000;
 
 /* .task0.text */
-_TASK0_TEXT_LMA         = 0x71110000;
+_TASK0_TEXT_PHY         = 0x0;
 _TASK0_TEXT_VMA         = 0x70110000;
 
 /* .task1.text */
-_TASK1_TEXT_LMA         = 0x71F50000;
+_TASK1_TEXT_PHY         = 0x0;
 _TASK1_TEXT_VMA         = 0x70F50000;
 /* .task1.data */
-_TASK1_DATA_LMA         = 0x71F51000;
+_TASK1_DATA_PHY         = 0x0;
 _TASK1_DATA_VMA         = 0x70F51000;
 /* TASK1 Stack */
 _TASK1_STACK            = 0x70F52000;
 /* .task1.bss */
 _TASK1_BSS_VMA          = 0x70F53000;
 /* .task1.rodata */
-_TASK1_RODATA_LMA       = 0x71F54000;
+_TASK1_RODATA_PHY       = 0x0;
 _TASK1_RODATA_VMA       = 0x70F54000;
 
 /* .task2.text */
-_TASK2_TEXT_LMA         = 0x71F40000;
+_TASK2_TEXT_PHY         = 0x0;
 _TASK2_TEXT_VMA         = 0x70F40000;
 /* .task2.data */
-_TASK2_DATA_LMA         = 0x71F42000;
+_TASK2_DATA_PHY         = 0x0;
 _TASK2_DATA_VMA         = 0x70F42000;
 /* .task2.bss */
 _TASK2_BSS_VMA          = 0x70F43000;
 /* .task2.rodata */
-_TASK2_RODATA_LMA       = 0x71F44000;
+_TASK2_RODATA_PHY       = 0x0;
 _TASK2_RODATA_VMA       = 0x70F44000;
 /* TASK2 Stack */
 _TASK2_STACK            = 0x70F45000;
@@ -106,36 +106,37 @@ SECTIONS {
 	} > MMU_REGION
 
     /* --- Kernel sections --- */
-    /* _KERNEL_TEXT_LMA = .; */
+    _KERNEL_TEXT_LMA = .;
     .kernel.text _KERNEL_TEXT_VMA : AT(_KERNEL_TEXT_LMA) {
         . = ALIGN(4);
         *(.kernel.text*)
     } > PUBLIC_RAM
     _KERNEL_TEXT_SIZE = SIZEOF(.kernel.text);
 
-    /* _KERNEL_DATA_LMA = _KERNEL_TEXT_LMA + _KERNEL_TEXT_SIZE; */
+    _KERNEL_DATA_LMA = _KERNEL_TEXT_LMA + _KERNEL_TEXT_SIZE;
     .kernel.data _KERNEL_DATA_VMA : AT(_KERNEL_DATA_LMA) {
         . = ALIGN(4);
         *(.kernel.data*)
     } > PUBLIC_RAM
     _KERNEL_DATA_SIZE = SIZEOF(.kernel.data);
 
-    /* _KERNEL_BSS_LMA = _KERNEL_DATA_LMA + _KERNEL_DATA_SIZE; */
+    _KERNEL_BSS_LMA = _KERNEL_DATA_LMA + _KERNEL_DATA_SIZE;
     .kernel.bss _KERNEL_BSS_VMA (NOLOAD) : {
         . = ALIGN(4);
         *(.kernel.bss*)
     } > PUBLIC_RAM
     _KERNEL_BSS_SIZE = SIZEOF(.kernel.bss);
 
-    /* _KERNEL_RODATA_LMA = _KERNEL_BSS_LMA + _KERNEL_BSS_SIZE; */
+    _KERNEL_RODATA_LMA = _KERNEL_BSS_LMA + _KERNEL_BSS_SIZE;
     .kernel.rodata _KERNEL_RODATA_VMA : AT(_KERNEL_RODATA_LMA) {
         . = ALIGN(4);
         *(.kernel.rodata*)
+        *(.rodata)
     } > PUBLIC_RAM
     _KERNEL_RODATA_SIZE = SIZEOF(.kernel.rodata);
 
     /* --- Task 0 --- */
-    /* _TASK0_TEXT_LMA = _KERNEL_RODATA_LMA + _KERNEL_RODATA_SIZE; */
+    _TASK0_TEXT_LMA = _KERNEL_RODATA_LMA + _KERNEL_RODATA_SIZE;
     .task0.text _TASK0_TEXT_VMA : AT(_TASK0_TEXT_LMA) {
         . = ALIGN(4);
         *(.task0.text*)
@@ -143,28 +144,28 @@ SECTIONS {
     _TASK0_TEXT_SIZE = SIZEOF(.task0.text);
 
     /* --- Task 1 --- */
-    /* _TASK1_TEXT_LMA = _TASK0_TEXT_LMA + _TASK0_TEXT_SIZE; */
+    _TASK1_TEXT_LMA = _TASK0_TEXT_LMA + _TASK0_TEXT_SIZE;
     .task1.text _TASK1_TEXT_VMA : AT(_TASK1_TEXT_LMA) {
         . = ALIGN(4);
         *(.task1.text*)
     } > PUBLIC_RAM
     _TASK1_TEXT_SIZE = SIZEOF(.task1.text);
 
-    /* _TASK1_DATA_LMA = _TASK1_TEXT_LMA + _TASK1_TEXT_SIZE; */
+    _TASK1_DATA_LMA = _TASK1_TEXT_LMA + _TASK1_TEXT_SIZE;
     .task1.data _TASK1_DATA_VMA : AT(_TASK1_DATA_LMA) {
         . = ALIGN(4);
         *(.task1.data*)
     } > PUBLIC_RAM
     _TASK1_DATA_SIZE = SIZEOF(.task1.data);
 
-    /* _TASK1_BSS_LMA = _TASK1_DATA_LMA + _TASK1_DATA_SIZE; */
+    _TASK1_BSS_LMA = _TASK1_DATA_LMA + _TASK1_DATA_SIZE;
     .task1.bss _TASK1_BSS_VMA (NOLOAD) : {
         . = ALIGN(4);
         *(.task1.bss*)
     } > PUBLIC_RAM
     _TASK1_BSS_SIZE = SIZEOF(.task1.bss);
 
-    /* _TASK1_RODATA_LMA = _TASK1_BSS_LMA + _TASK1_BSS_SIZE; */
+    _TASK1_RODATA_LMA = _TASK1_BSS_LMA + _TASK1_BSS_SIZE;
     .task1.rodata _TASK1_RODATA_VMA : AT(_TASK1_RODATA_LMA) {
         . = ALIGN(4);
         *(.task1.rodata*)
@@ -172,28 +173,28 @@ SECTIONS {
     _TASK1_RODATA_SIZE = SIZEOF(.task1.rodata);
 
     /* --- Task 2 --- */
-    /* _TASK2_TEXT_LMA = _TASK1_RODATA_LMA + _TASK1_RODATA_SIZE; */
+    _TASK2_TEXT_LMA = _TASK1_RODATA_LMA + _TASK1_RODATA_SIZE;
     .task2.text _TASK2_TEXT_VMA : AT(_TASK2_TEXT_LMA) {
         . = ALIGN(4);
         *(.task2.text*)
     } > PUBLIC_RAM
     _TASK2_TEXT_SIZE = SIZEOF(.task2.text);
 
-    /* _TASK2_DATA_LMA = _TASK2_TEXT_LMA + _TASK2_TEXT_SIZE; */
+    _TASK2_DATA_LMA = _TASK2_TEXT_LMA + _TASK2_TEXT_SIZE;
     .task2.data _TASK2_DATA_VMA : AT(_TASK2_DATA_LMA) {
         . = ALIGN(4);
         *(.task2.data*)
     } > PUBLIC_RAM
     _TASK2_DATA_SIZE = SIZEOF(.task2.data);
 
-    /* _TASK2_BSS_LMA = _TASK2_DATA_LMA + _TASK2_DATA_SIZE; */
+    _TASK2_BSS_LMA = _TASK2_DATA_LMA + _TASK2_DATA_SIZE;
     .task2.bss _TASK2_BSS_VMA (NOLOAD) : {
         . = ALIGN(4);
         *(.task2.bss*)
     } > PUBLIC_RAM
     _TASK2_BSS_SIZE = SIZEOF(.task2.bss);
 
-    /* _TASK2_RODATA_LMA = _TASK2_BSS_LMA + _TASK2_BSS_SIZE; */
+    _TASK2_RODATA_LMA = _TASK2_BSS_LMA + _TASK2_BSS_SIZE;
     .task2.rodata _TASK2_RODATA_VMA : AT(_TASK2_RODATA_LMA) {
         . = ALIGN(4);
         *(.task2.rodata*)

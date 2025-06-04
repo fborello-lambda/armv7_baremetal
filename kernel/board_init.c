@@ -73,6 +73,10 @@ __attribute__((section(".text"))) void c_board_init(void) {
   // on Realview pb8
   // Init UART
   c_UART0_init();
+  asm volatile("cpsie i");
+  c_putsln("Starting Scheduler...");
+  asm volatile("cpsid i");
+  asm volatile("isb");
 
   // Init Tasks / Scheduler
   // It also fills the tables needed to start the MMU

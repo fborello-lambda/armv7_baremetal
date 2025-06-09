@@ -6,7 +6,8 @@
 #include <string.h>
 
 // Clears memory
-static void clear_memory(void *addr, uint32_t size_in_bytes) {
+__attribute__((section(".kernel.text.mmu"))) void
+clear_memory(void *addr, uint32_t size_in_bytes) {
   uint32_t *p = (uint32_t *)addr;
   uint32_t count = size_in_bytes / 4; // Number of 32-bit words to clear
 
@@ -14,45 +15,6 @@ static void clear_memory(void *addr, uint32_t size_in_bytes) {
     p[i] = 0;
   }
 }
-
-#define GET_SYMBOL_VALUE(sym) ((uint32_t)&(sym))
-
-extern uint32_t _KERNEL_TEXT_VMA, _KERNEL_TEXT_LMA;
-extern uint32_t _KERNEL_DATA_VMA, _KERNEL_DATA_LMA;
-extern uint32_t _KERNEL_RODATA_VMA, _KERNEL_RODATA_LMA;
-extern uint32_t _KERNEL_BSS_VMA;
-extern uint32_t _KERNEL_STACK;
-
-extern uint32_t _TASK0_TEXT_VMA, _TASK0_TEXT_LMA;
-extern uint32_t _TASK1_TEXT_VMA, _TASK1_TEXT_LMA;
-extern uint32_t _TASK1_DATA_VMA, _TASK1_DATA_LMA;
-extern uint32_t _TASK1_RODATA_VMA, _TASK1_RODATA_LMA;
-extern uint32_t _TASK1_BSS_VMA;
-extern uint32_t _TASK1_STACK;
-extern uint32_t _TASK2_TEXT_VMA, _TASK2_TEXT_LMA;
-extern uint32_t _TASK2_DATA_VMA, _TASK2_DATA_LMA;
-extern uint32_t _TASK2_RODATA_VMA, _TASK2_RODATA_LMA;
-extern uint32_t _TASK2_BSS_VMA;
-extern uint32_t _TASK2_STACK;
-
-// Declare SIZE symbols as void to get their value from the address
-extern void _KERNEL_TEXT_SIZE;
-extern void _KERNEL_DATA_SIZE;
-extern void _KERNEL_RODATA_SIZE;
-extern void _KERNEL_BSS_SIZE;
-extern void _KERNEL_STACK_SIZE;
-
-extern void _TASK0_TEXT_SIZE;
-extern void _TASK1_TEXT_SIZE;
-extern void _TASK1_DATA_SIZE;
-extern void _TASK1_RODATA_SIZE;
-extern void _TASK1_BSS_SIZE;
-extern void _TASK1_STACK_SIZE;
-extern void _TASK2_TEXT_SIZE;
-extern void _TASK2_DATA_SIZE;
-extern void _TASK2_RODATA_SIZE;
-extern void _TASK2_BSS_SIZE;
-extern void _TASK2_STACK_SIZE;
 
 __attribute__((section(".kernel.text.mmu"))) void c_mmu_init(void) {
   // Set DACR to manager (all access)
@@ -75,25 +37,28 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
   }
   tables->next_l2_table = 0;
 
-  identity_map_region(tables, 0x70010000, 0x70010000, 16);
+  identity_map_region(tables, 0x70010000, 0x70010000, 4);
   identity_map_region(tables, (uint32_t)&_KERNEL_TEXT_VMA,
-                      (uint32_t)&_KERNEL_TEXT_VMA,
+                      (uint32_t)&_KERNEL_TEXT_PHY,
                       GET_SYMBOL_VALUE(_KERNEL_TEXT_SIZE) / 1024);
   identity_map_region(tables, (uint32_t)&_KERNEL_DATA_VMA,
-                      (uint32_t)&_KERNEL_DATA_VMA,
+                      (uint32_t)&_KERNEL_DATA_PHY,
                       GET_SYMBOL_VALUE(_KERNEL_DATA_SIZE) / 1024);
   identity_map_region(tables, (uint32_t)&_KERNEL_RODATA_VMA,
-                      (uint32_t)&_KERNEL_RODATA_VMA,
+                      (uint32_t)&_KERNEL_RODATA_PHY,
                       GET_SYMBOL_VALUE(_KERNEL_RODATA_SIZE) / 1024);
   identity_map_region(tables, (uint32_t)&_KERNEL_BSS_VMA,
-                      (uint32_t)&_KERNEL_BSS_VMA,
+                      (uint32_t)&_KERNEL_BSS_PHY,
                       GET_SYMBOL_VALUE(_KERNEL_BSS_SIZE) / 1024);
   identity_map_region(tables, (uint32_t)&_KERNEL_STACK,
                       (uint32_t)&_KERNEL_STACK,
                       GET_SYMBOL_VALUE(_KERNEL_STACK_SIZE) / 1024);
 
-  identity_map_region(tables, 0x70080000, 0x70080000, 32 * 4);
+  // MMU
+  identity_map_region(tables, 0x70080000, 0x70080000, 32 * 3);
+  // Vector Table
   c_mmu_map_4kb_page(tables, 0x00000000, 0x00000000, L2_DEFAULT_FLAGS);
+  // Peripherals
   c_mmu_map_4kb_page(tables, GICC0_ADDR, GICC0_ADDR, L2_DEFAULT_FLAGS);
   c_mmu_map_4kb_page(tables, GICD0_ADDR, GICD0_ADDR, L2_DEFAULT_FLAGS);
   c_mmu_map_4kb_page(tables, UART0_ADDR, UART0_ADDR, L2_DEFAULT_FLAGS);
@@ -102,43 +67,43 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
   switch (task_id) {
   case 0:
     identity_map_region(tables, (uint32_t)&_TASK0_TEXT_VMA,
-                        (uint32_t)&_TASK0_TEXT_VMA,
+                        (uint32_t)&_TASK0_TEXT_PHY,
                         GET_SYMBOL_VALUE(_TASK0_TEXT_SIZE) / 1024);
     break;
 
   case 1:
     identity_map_region(tables, (uint32_t)&_TASK1_TEXT_VMA,
-                        (uint32_t)&_TASK1_TEXT_VMA,
+                        (uint32_t)&_TASK1_TEXT_PHY,
                         GET_SYMBOL_VALUE(_TASK1_TEXT_SIZE) / 1024);
     identity_map_region(tables, (uint32_t)&_TASK1_DATA_VMA,
-                        (uint32_t)&_TASK1_DATA_VMA,
+                        (uint32_t)&_TASK1_DATA_PHY,
                         GET_SYMBOL_VALUE(_TASK1_DATA_SIZE) / 1024);
     identity_map_region(tables, (uint32_t)&_TASK1_RODATA_VMA,
-                        (uint32_t)&_TASK1_RODATA_VMA,
+                        (uint32_t)&_TASK1_RODATA_PHY,
                         GET_SYMBOL_VALUE(_TASK1_RODATA_SIZE) / 1024);
     identity_map_region(tables, (uint32_t)&_TASK1_BSS_VMA,
-                        (uint32_t)&_TASK1_BSS_VMA,
+                        (uint32_t)&_TASK1_BSS_PHY,
                         GET_SYMBOL_VALUE(_TASK1_BSS_SIZE) / 1024);
     identity_map_region(tables, (uint32_t)&_TASK1_STACK,
-                        (uint32_t)&_TASK1_STACK,
+                        (uint32_t)&_TASK1_STACK_PHY,
                         GET_SYMBOL_VALUE(_TASK1_STACK_SIZE) / 1024);
     break;
 
   case 2:
     identity_map_region(tables, (uint32_t)&_TASK2_TEXT_VMA,
-                        (uint32_t)&_TASK2_TEXT_VMA,
+                        (uint32_t)&_TASK2_TEXT_PHY,
                         GET_SYMBOL_VALUE(_TASK2_TEXT_SIZE) / 1024);
     identity_map_region(tables, (uint32_t)&_TASK2_DATA_VMA,
-                        (uint32_t)&_TASK2_DATA_VMA,
+                        (uint32_t)&_TASK2_DATA_PHY,
                         GET_SYMBOL_VALUE(_TASK2_DATA_SIZE) / 1024);
     identity_map_region(tables, (uint32_t)&_TASK2_RODATA_VMA,
-                        (uint32_t)&_TASK2_RODATA_VMA,
+                        (uint32_t)&_TASK2_RODATA_PHY,
                         GET_SYMBOL_VALUE(_TASK2_RODATA_SIZE) / 1024);
     identity_map_region(tables, (uint32_t)&_TASK2_BSS_VMA,
-                        (uint32_t)&_TASK2_BSS_VMA,
+                        (uint32_t)&_TASK2_BSS_PHY,
                         GET_SYMBOL_VALUE(_TASK2_BSS_SIZE) / 1024);
     identity_map_region(tables, (uint32_t)&_TASK2_STACK,
-                        (uint32_t)&_TASK2_STACK,
+                        (uint32_t)&_TASK2_STACK_PHY,
                         GET_SYMBOL_VALUE(_TASK2_STACK_SIZE) / 1024);
     break;
 

@@ -99,6 +99,12 @@ debug: obj/image.elf ## Debug the project using GDB
 	$<
 .PHONY: debug
 
+ddd.debug:
+	ddd --debugger 'gdb-multiarch \
+		--ex "set auto-load safe-path /" \
+		--ex "target remote localhost:2159"' obj/image.elf
+.PHONY: ddd.debug
+
 nix.ddd.debug: ## Debug the project using DDD and nix-shell, attach to localhost:2159
 	nix-shell --run 'ddd \
 		--debugger "gdb \

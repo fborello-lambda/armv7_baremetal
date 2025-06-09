@@ -73,7 +73,7 @@ c_task_init(_task_ptr_t entrypoint, _systick_t ticks) {
     // Set the TTBR0 address for each task
     uint32_t *ttbr0 = (uint32_t *)&mmu_tables[task_index];
     tasks[task_index].ttbr0 = ttbr0;
-    // c_mmu_fill_tables(&mmu_tables[task_index], task_index);
+    c_mmu_fill_tables(&mmu_tables[task_index], task_index);
 
     task_index++;
   }

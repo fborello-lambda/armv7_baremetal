@@ -40,4 +40,48 @@ int32_t c_mmu_map_4kb_page(mmu_tables_t *tables, uint32_t virt_addr,
 int32_t identity_map_region(mmu_tables_t *tables, uint32_t virt_addr,
                             uint32_t phys_addr, uint32_t size_in_kb);
 
+// Memory Map
+#define GET_SYMBOL_VALUE(sym) ((uint32_t) & (sym))
+// KERNEL sections
+extern uint32_t _KERNEL_TEXT_LMA, _KERNEL_TEXT_VMA, _KERNEL_TEXT_PHY;
+extern uint32_t _KERNEL_DATA_LMA, _KERNEL_DATA_VMA, _KERNEL_DATA_PHY;
+extern uint32_t _KERNEL_RODATA_LMA, _KERNEL_RODATA_VMA, _KERNEL_RODATA_PHY;
+extern uint32_t _KERNEL_BSS_VMA, _KERNEL_BSS_PHY;
+extern uint32_t _KERNEL_STACK;
+
+// TASK0 sections
+extern uint32_t _TASK0_TEXT_LMA, _TASK0_TEXT_VMA, _TASK0_TEXT_PHY;
+
+// TASK1 sections
+extern uint32_t _TASK1_TEXT_LMA, _TASK1_TEXT_VMA, _TASK1_TEXT_PHY;
+extern uint32_t _TASK1_DATA_LMA, _TASK1_DATA_VMA, _TASK1_DATA_PHY;
+extern uint32_t _TASK1_RODATA_LMA, _TASK1_RODATA_VMA, _TASK1_RODATA_PHY;
+extern uint32_t _TASK1_BSS_VMA, _TASK1_BSS_PHY;
+extern uint32_t _TASK1_STACK, _TASK1_STACK_PHY;
+
+// TASK2 sections
+extern uint32_t _TASK2_TEXT_LMA, _TASK2_TEXT_VMA, _TASK2_TEXT_PHY;
+extern uint32_t _TASK2_DATA_LMA, _TASK2_DATA_VMA, _TASK2_DATA_PHY;
+extern uint32_t _TASK2_RODATA_LMA, _TASK2_RODATA_VMA, _TASK2_RODATA_PHY;
+extern uint32_t _TASK2_BSS_VMA, _TASK2_BSS_PHY;
+extern uint32_t _TASK2_STACK, _TASK2_STACK_PHY;
+
+// Declare SIZE symbols as void to get their value from the address
+extern uint8_t _KERNEL_TEXT_SIZE;
+extern uint8_t _KERNEL_DATA_SIZE;
+extern uint8_t _KERNEL_RODATA_SIZE;
+extern uint8_t _KERNEL_BSS_SIZE;
+extern uint8_t _KERNEL_STACK_SIZE;
+extern uint8_t _TASK0_TEXT_SIZE;
+extern uint8_t _TASK1_TEXT_SIZE;
+extern uint8_t _TASK1_DATA_SIZE;
+extern uint8_t _TASK1_RODATA_SIZE;
+extern uint8_t _TASK1_BSS_SIZE;
+extern uint8_t _TASK1_STACK_SIZE;
+extern uint8_t _TASK2_TEXT_SIZE;
+extern uint8_t _TASK2_DATA_SIZE;
+extern uint8_t _TASK2_RODATA_SIZE;
+extern uint8_t _TASK2_BSS_SIZE;
+extern uint8_t _TASK2_STACK_SIZE;
+
 #endif // __MMU_LIB_H__

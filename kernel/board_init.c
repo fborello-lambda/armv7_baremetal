@@ -5,31 +5,6 @@
 #include "inc/timer.h"
 #include "inc/uart.h"
 
-#define GET_SYMBOL_VALUE(sym) ((uint32_t)&(sym))
-
-extern uint32_t _KERNEL_TEXT_LMA, _KERNEL_TEXT_VMA;
-extern uint32_t _KERNEL_DATA_LMA, _KERNEL_DATA_VMA;
-extern uint32_t _KERNEL_RODATA_LMA, _KERNEL_RODATA_VMA;
-extern uint32_t _TASK0_TEXT_LMA, _TASK0_TEXT_VMA;
-extern uint32_t _TASK1_TEXT_LMA, _TASK1_TEXT_VMA;
-extern uint32_t _TASK1_DATA_LMA, _TASK1_DATA_VMA;
-extern uint32_t _TASK1_RODATA_LMA, _TASK1_RODATA_VMA;
-extern uint32_t _TASK2_TEXT_LMA, _TASK2_TEXT_VMA;
-extern uint32_t _TASK2_DATA_LMA, _TASK2_DATA_VMA;
-extern uint32_t _TASK2_RODATA_LMA, _TASK2_RODATA_VMA;
-
-// Declare SIZE symbols as void so their address is treated as the value
-extern void _KERNEL_TEXT_SIZE;
-extern void _KERNEL_DATA_SIZE;
-extern void _KERNEL_RODATA_SIZE;
-extern void _TASK0_TEXT_SIZE;
-extern void _TASK1_TEXT_SIZE;
-extern void _TASK1_DATA_SIZE;
-extern void _TASK1_RODATA_SIZE;
-extern void _TASK2_TEXT_SIZE;
-extern void _TASK2_DATA_SIZE;
-extern void _TASK2_RODATA_SIZE;
-
 static void copy_lma_into_vma(void *dst, const void *src, uint32_t size) {
   if (size == 0) {
     return;

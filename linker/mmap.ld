@@ -3,49 +3,59 @@ OUTPUT_ARCH(arm)
 ENTRY(_vector_table)
 
 /* Kernel .bss */
-_KERNEL_BSS_PHY         = 0x0;
+_KERNEL_BSS_PHY         = 0x70022000;
 _KERNEL_BSS_VMA         = 0x70022000;
 /* Kernel .rodata */
-_KERNEL_RODATA_PHY      = 0x0;
+_KERNEL_RODATA_PHY      = 0x70023000;
 _KERNEL_RODATA_VMA      = 0x70023000;
 /* Kernel .text */
-_KERNEL_TEXT_PHY        = 0x0;
+_KERNEL_TEXT_PHY        = 0x70030000;
 _KERNEL_TEXT_VMA        = 0x70030000;
 /* Kernel .data */
-_KERNEL_DATA_PHY        = 0x0;
+_KERNEL_DATA_PHY        = 0x70031000;
 _KERNEL_DATA_VMA        = 0x70031000;
 
 /* .task0.text */
-_TASK0_TEXT_PHY         = 0x0;
-_TASK0_TEXT_VMA         = 0x70110000;
+_TASK0_TEXT_PHY         = 0x70F60000;
+_TASK0_TEXT_VMA         = 0x70F60000;
 
 /* .task1.text */
-_TASK1_TEXT_PHY         = 0x0;
+_TASK1_TEXT_PHY         = 0x80750000;
 _TASK1_TEXT_VMA         = 0x70F50000;
 /* .task1.data */
-_TASK1_DATA_PHY         = 0x0;
+_TASK1_DATA_PHY         = 0x80751000;
 _TASK1_DATA_VMA         = 0x70F51000;
 /* TASK1 Stack */
+_TASK1_STACK_PHY        = 0x80752000;
 _TASK1_STACK            = 0x70F52000;
 /* .task1.bss */
+_TASK1_BSS_PHY          = 0x80753000;
 _TASK1_BSS_VMA          = 0x70F53000;
 /* .task1.rodata */
-_TASK1_RODATA_PHY       = 0x0;
+_TASK1_RODATA_PHY       = 0x80754000;
 _TASK1_RODATA_VMA       = 0x70F54000;
+/* TASK1 reading area */
+_TASK1_RAREA_PHY        = 0x80000000;
+_TASK1_RAREA_VMA        = 0x70A00000;
 
 /* .task2.text */
-_TASK2_TEXT_PHY         = 0x0;
+_TASK2_TEXT_PHY         = 0x80740000;
 _TASK2_TEXT_VMA         = 0x70F40000;
 /* .task2.data */
-_TASK2_DATA_PHY         = 0x0;
-_TASK2_DATA_VMA         = 0x70F42000;
+_TASK2_DATA_PHY         = 0x80741000;
+_TASK2_DATA_VMA         = 0x70F41000;
 /* .task2.bss */
+_TASK2_BSS_PHY          = 0x80743000;
 _TASK2_BSS_VMA          = 0x70F43000;
 /* .task2.rodata */
-_TASK2_RODATA_PHY       = 0x0;
+_TASK2_RODATA_PHY       = 0x80744000;
 _TASK2_RODATA_VMA       = 0x70F44000;
 /* TASK2 Stack */
-_TASK2_STACK            = 0x70F45000;
+_TASK2_STACK_PHY        = 0x80742000;
+_TASK2_STACK            = 0x70F42000;
+/* TASK2 reading area */
+_TASK2_RAREA_PHY        = 0x80010000;
+_TASK2_RAREA_VMA        = 0x70A10000;
 
 _PUBLIC_RAM_INIT        = 0x70010000;
 _KERNEL_STACK           = 0x70020000;
@@ -61,7 +71,7 @@ _STACK_SIZE             = _ABT_STACK_SIZE + _SVC_STACK_SIZE + _IRQ_STACK_SIZE + 
 _TASK_STACK_SIZE        = 512;
 
 /* Has to match the kernel/inc/sched.h define statement */
-MAX_TASKS               = 4;
+MAX_TASKS               = 3;
 _PAGE_SIZE_L1       	= 16K;
 _PAGE_SIZE_L2       	= 1K;
 _TOTAL_MMU_REGION_SIZE  = (_PAGE_SIZE_L1 + 8 * 2 * _PAGE_SIZE_L2) * MAX_TASKS;

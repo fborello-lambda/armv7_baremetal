@@ -88,7 +88,7 @@ __attribute__((section(".kernel.text"))) void c_scheduler_init(void) {
   // Set the TTBR0 register
   asm volatile("mcr p15, 0, %0, c2, c0, 0" : : "r"(current_task->ttbr0));
   // Start the MMU
-  // c_mmu_init();
+  c_mmu_init();
 
   c_putsln("Board init done");
 

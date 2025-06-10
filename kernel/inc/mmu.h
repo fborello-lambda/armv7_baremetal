@@ -12,7 +12,7 @@
 
 // Matches the length defined in the mmap.ld.
 // Should be calculated instead of being hardcoded.
-#define L2_TABLES_PER_TASK 8 // 8 L2 tables per task
+#define L2_TABLES_PER_TASK 8 // L2 tables per task
 
 typedef struct {
   uint32_t l1_table[L1_ENTRIES] __attribute__((aligned(L1_SIZE)));
@@ -66,7 +66,8 @@ extern uint32_t _TASK2_RODATA_LMA, _TASK2_RODATA_VMA, _TASK2_RODATA_PHY;
 extern uint32_t _TASK2_BSS_VMA, _TASK2_BSS_PHY;
 extern uint32_t _TASK2_STACK, _TASK2_STACK_PHY;
 
-// Declare SIZE symbols as void to get their value from the address
+// Declare SIZE to get their value from the address with the GET_SYMBOL_VALUE
+// macro
 extern uint8_t _KERNEL_TEXT_SIZE;
 extern uint8_t _KERNEL_DATA_SIZE;
 extern uint8_t _KERNEL_RODATA_SIZE;

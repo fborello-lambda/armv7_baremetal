@@ -71,7 +71,7 @@ c_task_init(_task_ptr_t entrypoint, _systick_t ticks) {
     *tasks[task_index].irq_sp = save_sp;
 
     // Set the TTBR0 address for each task
-    uint32_t *ttbr0 = (uint32_t *)&mmu_tables[task_index];
+    uint32_t *ttbr0 = mmu_tables[task_index].l1_table;
     tasks[task_index].ttbr0 = ttbr0;
     c_mmu_fill_tables(&mmu_tables[task_index], task_index);
 

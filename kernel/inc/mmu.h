@@ -58,6 +58,10 @@ extern uint32_t _TASK1_DATA_LMA, _TASK1_DATA_VMA, _TASK1_DATA_PHY;
 extern uint32_t _TASK1_RODATA_LMA, _TASK1_RODATA_VMA, _TASK1_RODATA_PHY;
 extern uint32_t _TASK1_BSS_VMA, _TASK1_BSS_PHY;
 extern uint32_t _TASK1_STACK, _TASK1_STACK_PHY;
+extern uint32_t _TASK1_RAREA_START_VMA, _TASK1_RAREA_END_VMA,
+    _TASK1_RAREA_START_PHY;
+#define TASK1_RAREA_SIZE_KB                                                    \
+  ((uint32_t)((&_TASK1_RAREA_END_VMA - &_TASK1_RAREA_START_VMA + 1) / 1024))
 
 // TASK2 sections
 extern uint32_t _TASK2_TEXT_LMA, _TASK2_TEXT_VMA, _TASK2_TEXT_PHY;
@@ -65,6 +69,10 @@ extern uint32_t _TASK2_DATA_LMA, _TASK2_DATA_VMA, _TASK2_DATA_PHY;
 extern uint32_t _TASK2_RODATA_LMA, _TASK2_RODATA_VMA, _TASK2_RODATA_PHY;
 extern uint32_t _TASK2_BSS_VMA, _TASK2_BSS_PHY;
 extern uint32_t _TASK2_STACK, _TASK2_STACK_PHY;
+extern uint32_t _TASK2_RAREA_START_VMA, _TASK2_RAREA_END_VMA,
+    _TASK2_RAREA_START_PHY;
+#define TASK2_RAREA_SIZE_KB                                                    \
+  ((uint32_t)((&_TASK2_RAREA_END_VMA - &_TASK2_RAREA_START_VMA + 1) / 1024))
 
 // Declare SIZE to get their value from the address with the GET_SYMBOL_VALUE
 // macro

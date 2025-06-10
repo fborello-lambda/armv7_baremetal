@@ -87,6 +87,9 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
     identity_map_region(tables, (uint32_t)&_TASK1_STACK,
                         (uint32_t)&_TASK1_STACK_PHY,
                         GET_SYMBOL_VALUE(_TASK1_STACK_SIZE) / 1024);
+
+    identity_map_region(tables, (uint32_t)&_TASK1_RAREA_START_VMA,
+                        (uint32_t)&_TASK1_RAREA_START_PHY, TASK1_RAREA_SIZE_KB);
     break;
 
   case 2:
@@ -105,6 +108,9 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
     identity_map_region(tables, (uint32_t)&_TASK2_STACK,
                         (uint32_t)&_TASK2_STACK_PHY,
                         GET_SYMBOL_VALUE(_TASK2_STACK_SIZE) / 1024);
+
+    identity_map_region(tables, (uint32_t)&_TASK2_RAREA_START_VMA,
+                        (uint32_t)&_TASK2_RAREA_START_PHY, TASK2_RAREA_SIZE_KB);
     break;
 
   default:

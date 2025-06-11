@@ -66,13 +66,13 @@ _KERNEL_STACK           = 0x70020000;
 _MMU_INIT        	    = 0x70080000;
 
 _SYS_STACK_SIZE         = 1K;
-_ABT_STACK_SIZE         = 512;
+_ABT_STACK_SIZE         = 1K;
 _SVC_STACK_SIZE         = 512;
 _IRQ_STACK_SIZE         = 1K;
 _UND_STACK_SIZE         = 512;
 
 _STACK_SIZE             = _ABT_STACK_SIZE + _SVC_STACK_SIZE + _IRQ_STACK_SIZE + _UND_STACK_SIZE + _SYS_STACK_SIZE;
-_TASK_STACK_SIZE        = 512;
+_TASK_STACK_SIZE        = 1K;
 
 /* Has to match the kernel/inc/sched.h define statement */
 MAX_TASKS               = 3;
@@ -80,13 +80,13 @@ _PAGE_SIZE_L1       	= 16K;
 _PAGE_SIZE_L2       	= 1K;
 _TOTAL_MMU_REGION_SIZE  = (_PAGE_SIZE_L1 + 8 * 2 * _PAGE_SIZE_L2) * MAX_TASKS;
 
-
+_KERNEL_STACK_SIZE      = _STACK_SIZE + 4 * _TASK_STACK_SIZE;
 _TASK1_STACK_SIZE       = _TASK_STACK_SIZE * 4;
 _TASK2_STACK_SIZE       = _TASK_STACK_SIZE * 4;
 
 MEMORY {
     PUBLIC_RAM      : ORIGIN    = _PUBLIC_RAM_INIT, LENGTH = 32M
-    PUBLIC_STACK    : ORIGIN    = _KERNEL_STACK,    LENGTH = _STACK_SIZE + _TASK_STACK_SIZE
+    PUBLIC_STACK    : ORIGIN    = _KERNEL_STACK,    LENGTH = _STACK_SIZE + 4 * _TASK_STACK_SIZE
     MMU_REGION      : ORIGIN    = _MMU_INIT,        LENGTH = _TOTAL_MMU_REGION_SIZE
     TASK1_STACK     : ORIGIN    = _TASK1_STACK,     LENGTH = _TASK1_STACK_SIZE
     TASK2_STACK     : ORIGIN    = _TASK2_STACK,     LENGTH = _TASK2_STACK_SIZE
@@ -219,7 +219,6 @@ SECTIONS {
     with SIMD (Single Instruction, Multiple Data) instructions,
     such as those found in ARM NEON or Intel SSE/AVX,
     which often require 16-byte alignment for their data. */
-    _KERNEL_STACK_SIZE = SIZEOF(.stack);
     .stack (NOLOAD) : {
         . = ALIGN(16);
         __stack_end = .;
@@ -252,17 +251,16 @@ SECTIONS {
 
         /* SP for task0 */
         _task0_stack_end = .;
-        . += (_TASK_STACK_SIZE / 2);
+        . += (_TASK_STACK_SIZE * 2);
         . = ALIGN(16);
         __task0_sp = .;
 
         /* IRQ_SP for task0 */
         _task0_irq_end = .;
-        . += (_TASK_STACK_SIZE / 2);
+        . += (_TASK_STACK_SIZE * 2);
         . = ALIGN(16);
         __task0_irq_sp = .;
 
-        /* 0x70021FFF */
         __stack_start = .;
     } > PUBLIC_STACK
 

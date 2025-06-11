@@ -37,9 +37,8 @@ void c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id);
 void c_mmu_init(void);
 int32_t c_mmu_map_4kb_page(mmu_tables_t *tables, uint32_t virt_addr,
                            uint32_t phys_addr, uint32_t l2_flags);
-int32_t identity_map_region(mmu_tables_t *tables, uint32_t virt_addr,
-                            uint32_t phys_addr, uint32_t size_in_kb);
-
+int32_t map_region(mmu_tables_t *tables, uint32_t virt_addr, uint32_t phys_addr,
+                   uint32_t size_in_bytes);
 // Memory Map
 #define GET_SYMBOL_VALUE(sym) ((uint32_t) & (sym))
 // KERNEL sections
@@ -60,8 +59,8 @@ extern uint32_t _TASK1_BSS_VMA, _TASK1_BSS_PHY;
 extern uint32_t _TASK1_STACK, _TASK1_STACK_PHY;
 extern uint32_t _TASK1_RAREA_START_VMA, _TASK1_RAREA_END_VMA,
     _TASK1_RAREA_START_PHY;
-#define TASK1_RAREA_SIZE_KB                                                    \
-  ((uint32_t)((&_TASK1_RAREA_END_VMA - &_TASK1_RAREA_START_VMA + 1) / 1024))
+#define TASK1_RAREA_SIZE_B                                                     \
+  ((uint32_t)((&_TASK1_RAREA_END_VMA - &_TASK1_RAREA_START_VMA + 1)))
 
 // TASK2 sections
 extern uint32_t _TASK2_TEXT_LMA, _TASK2_TEXT_VMA, _TASK2_TEXT_PHY;
@@ -71,8 +70,8 @@ extern uint32_t _TASK2_BSS_VMA, _TASK2_BSS_PHY;
 extern uint32_t _TASK2_STACK, _TASK2_STACK_PHY;
 extern uint32_t _TASK2_RAREA_START_VMA, _TASK2_RAREA_END_VMA,
     _TASK2_RAREA_START_PHY;
-#define TASK2_RAREA_SIZE_KB                                                    \
-  ((uint32_t)((&_TASK2_RAREA_END_VMA - &_TASK2_RAREA_START_VMA + 1) / 1024))
+#define TASK2_RAREA_SIZE_B                                                     \
+  ((uint32_t)((&_TASK2_RAREA_END_VMA - &_TASK2_RAREA_START_VMA + 1)))
 
 // Declare SIZE to get their value from the address with the GET_SYMBOL_VALUE
 // macro

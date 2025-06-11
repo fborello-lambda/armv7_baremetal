@@ -123,17 +123,27 @@ __attribute__((section(".kernel.text"))) uint32_t c_scheduler(_ctx_t *ctx) {
     // Set the current task to the new task_id
     current_task = &tasks[id];
 
-    // Switch to SVC mode to use the new task's svc_sp
+    uint32_t *new_svc_sp = current_task->svc_sp;
     asm volatile("cps #0x13    \n\t" // Switch to SVC mode
                  "mov sp, %0   \n\t" // Load the new task's SVC stack pointer
-                 : "=r"(current_task->svc_sp));
+                 :
+                 : "r"(new_svc_sp));
     // Switch back to IRQ mode
     asm volatile("cps #0x12");
     // Set the TTBR0 of the current_task
     __asm__ volatile("mcr p15, 0, %0, c2, c0, 0" : : "r"(current_task->ttbr0));
 
+    c_puts("\033[32mSwitched to task: \033[0m");
     c_puts_hex(current_task->id);
     c_putchar('\n');
+
+    for (int i = 0; i < 16; i++) {
+      if (i == 15) {
+        c_puts("The PC would be: ");
+        c_puts_hex(current_task->irq_sp[i]);
+        c_putchar('\n');
+      }
+    }
   }
   return (uint32_t)current_task->irq_sp;
 }

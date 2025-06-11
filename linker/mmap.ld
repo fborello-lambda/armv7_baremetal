@@ -111,7 +111,7 @@ SECTIONS {
         __bss_end__ = .;
     } > PUBLIC_RAM
 
-	.tables : {
+	.tables (NOLOAD) : {
     	/* The alignment is for the table size */
     	. = ALIGN(16K);
         __mmu_tables_start__ = .;
@@ -136,7 +136,6 @@ SECTIONS {
 
     _KERNEL_BSS_LMA = _KERNEL_DATA_LMA + _KERNEL_DATA_SIZE;
     .kernel.bss _KERNEL_BSS_VMA (NOLOAD) : {
-        . = ALIGN(4);
         *(.kernel.bss*)
     } > PUBLIC_RAM
     _KERNEL_BSS_SIZE = SIZEOF(.kernel.bss);

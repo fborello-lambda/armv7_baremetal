@@ -1,5 +1,8 @@
+#include "../sys/inc/logger.h"
 #include "inc/mmu.h"
+
 __attribute__((section(".text._abort_handler"))) uint32_t c_abort_handler() {
+  c_log_warn("Abort Handler");
   // Get the fault address from DFAR
   // # Following:
   // -

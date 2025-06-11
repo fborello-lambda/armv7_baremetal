@@ -10,7 +10,7 @@ COPT ?= -O0 # No optimizations
 
 ## List of assembly source files
 PROC_AS_SRC := $(wildcard proc/*.s)
-SYS_AS_SRC := $(wildcard sys/*.s)
+SYS_C_SRC := $(wildcard sys/*.c)
 CORE_AS_SRC := $(wildcard core/*.s)
 KERNEL_C_SRC := $(wildcard kernel/*.c)
 KERNEL_RS_SRC := $(wildcard kernel/rs/drivers.rs)
@@ -22,7 +22,7 @@ LINKER_SCRIPT := linker/mmap.ld
 
 ## List of object files generated from assembly source files
 PROC_OBJ_FILES := $(patsubst proc/%.s, obj/proc/%.o, $(PROC_AS_SRC))
-SYS_OBJ_FILES := $(patsubst sys/%.s, obj/sys/%.o, $(SYS_AS_SRC))
+SYS_OBJ_FILES := $(patsubst sys/%.c, obj/sys/%.o, $(SYS_C_SRC))
 CORE_OBJ_FILES := $(patsubst core/%.s, obj/core/%.o, $(CORE_AS_SRC))
 KERNEL_OBJ_FILES := $(patsubst kernel/%.c, obj/kernel/%.o, $(KERNEL_C_SRC))
 KERNEL_RS_OBJ_FILES := $(patsubst kernel/rs/%.rs, obj/kernel_rs/%.o, $(KERNEL_RS_SRC))
@@ -56,9 +56,9 @@ obj/proc/%.o: proc/%.s ## Rule to compile assembly files into object files for p
 	mkdir -p obj/proc
 	$(AS) -c $< -g -o $@ -a > $@.lst
 
-obj/sys/%.o: sys/%.s ## Rule to compile assembly files into object files for sys
+obj/sys/%.o: sys/%.c ## Rule to compile C files into object files for sys
 	mkdir -p obj/sys
-	$(AS) -c $< -g -o $@ -a > $@.lst
+	$(GCC) -g $(COPT) $(CFLAGS) -c $< -o $@
 
 obj/core/%.o: core/%.s ## Rule to compile assembly files into object files for core
 	mkdir -p obj/core
@@ -123,7 +123,7 @@ nix.qemuA8: bin/image.bin ## Run QEMU with ARMv7 architecture using nix-shell
 
 qemuA8: bin/image.bin ## Run QEMU with ARMv7 architecture
 	qemu-system-arm \
-	-M realview-pb-a8 -m 64M \
+	-M realview-pb-a8 -m 512M \
 	-no-reboot -nographic \
 	-monitor telnet:127.0.0.1:1234,server,nowait \
 	-kernel $< -S -gdb tcp::2159
@@ -134,11 +134,11 @@ nix.fmt: ## Format the Nix file
 .PHONY: nix.fmt
 
 nix.cfmt: ## Format C files using clang-format with nix-shell
-	nix-shell --run "clang-format -i kernel/*.c kernel/inc/*.h"
+	nix-shell --run "clang-format -i kernel/*.c kernel/inc/*.h sys/*.c sys/inc/*.h"
 .PHONY: nix.cfmt
 
 cfmt: ## Format C files using clang-format
-	clang-format -i kernel/*.c kernel/inc/*.h
+	clang-format -i kernel/*.c kernel/inc/*.h sys/*.c sys/inc/*.h
 .PHONY: cfmt
 
 clean: ## Clean up generated files

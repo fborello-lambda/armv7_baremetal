@@ -1,18 +1,20 @@
 #include "inc/tasks.h"
+#include "../sys/inc/logger.h"
 #include "inc/mmu.h"
 #include "inc/sched.h"
 #include "inc/uart.h"
 
 __attribute__((section(".task0.text"))) void task_idle() {
-  c_putsln("[TASK0]");
+  c_putsln("[TASK0] first execution");
   while (1) {
     asm("wfi");
   }
 }
 
-__attribute__((section(".task1.rodata"))) const char str_task1[] = "[TASK1]";
+__attribute__((section(".task1.rodata"))) const char str_task1[] =
+    "[TASK1] first execution";
 __attribute__((section(".task1.text"))) void task1() {
-  c_putsln(str_task1);
+  c_log_info(str_task1);
 
   uint32_t *addr = (uint32_t *)&_TASK1_RAREA_START_VMA;
   uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;
@@ -38,9 +40,10 @@ __attribute__((section(".task1.text"))) void task1() {
   }
 }
 
-__attribute__((section(".task2.rodata"))) const char str_task2[] = "[TASK2]";
+__attribute__((section(".task2.rodata"))) const char str_task2[] =
+    "[TASK2] first execution";
 __attribute__((section(".task2.text"))) void task2() {
-  c_putsln(str_task2);
+  c_log_info(str_task2);
 
   uint32_t *addr = (uint32_t *)&_TASK2_RAREA_START_VMA;
   uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;

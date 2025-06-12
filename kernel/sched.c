@@ -1,4 +1,5 @@
 #include "inc/sched.h"
+#include "../sys/inc/logger.h"
 #include "inc/mmu.h"
 #include "inc/tasks.h"
 #include "inc/uart.h"
@@ -90,7 +91,7 @@ __attribute__((section(".kernel.text"))) void c_scheduler_init(void) {
   // Start the MMU
   c_mmu_init();
 
-  c_putsln("Board init done");
+  c_log_info("Scheduler init Done");
 
   // The IRQ is enabled on low, thats why bic instr is used
   // mrs r0, cpsr
@@ -133,9 +134,7 @@ __attribute__((section(".kernel.text"))) uint32_t c_scheduler(_ctx_t *ctx) {
     // Set the TTBR0 of the current_task
     __asm__ volatile("mcr p15, 0, %0, c2, c0, 0" : : "r"(current_task->ttbr0));
 
-    c_puts("\033[32mSwitched to task: \033[0m");
-    c_puts_hex(current_task->id);
-    c_putchar('\n');
+    c_log_taskswitch(current_task->id);
 
     for (int i = 0; i < 16; i++) {
       if (i == 15) {

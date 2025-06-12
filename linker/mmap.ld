@@ -26,8 +26,7 @@ _TASK1_TEXT_VMA         = 0x70F50000;
 _TASK1_DATA_PHY         = 0x80751000;
 _TASK1_DATA_VMA         = 0x70F51000;
 /* TASK1 Stack */
-/* _TASK1_STACK_PHY        = 0x80752000; */
-_TASK1_STACK_PHY        = 0x70F52000;
+_TASK1_STACK_PHY        = 0x80752000;
 _TASK1_STACK            = 0x70F52000;
 /* .task1.bss */
 _TASK1_BSS_PHY          = 0x80753000;
@@ -53,8 +52,7 @@ _TASK2_BSS_VMA          = 0x70F43000;
 _TASK2_RODATA_PHY       = 0x80744000;
 _TASK2_RODATA_VMA       = 0x70F44000;
 /* TASK2 Stack */
-/* _TASK2_STACK_PHY        = 0x80742000; */
-_TASK2_STACK_PHY        = 0x70F42000;
+_TASK2_STACK_PHY        = 0x80742000;
 _TASK2_STACK            = 0x70F42000;
 /* TASK2 reading area */
 _TASK2_RAREA_START_PHY  = 0x80010000;

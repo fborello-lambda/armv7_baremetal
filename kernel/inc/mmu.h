@@ -39,6 +39,9 @@ int32_t c_mmu_map_4kb_page(mmu_tables_t *tables, uint32_t virt_addr,
                            uint32_t phys_addr, uint32_t l2_flags);
 int32_t map_region(mmu_tables_t *tables, uint32_t virt_addr, uint32_t phys_addr,
                    uint32_t size_in_bytes);
+void copy_lma_into_phy(void *phy, const void *lma, uint32_t size);
+void copy_sections(void);
+
 // Memory Map
 #define GET_SYMBOL_VALUE(sym) ((uint32_t) & (sym))
 // KERNEL sections

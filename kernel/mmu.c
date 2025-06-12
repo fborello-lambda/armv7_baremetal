@@ -6,14 +6,51 @@
 #include <stdio.h>
 #include <string.h>
 
-// Clears memory
-void clear_memory(void *addr, uint32_t size_in_bytes) {
+__attribute__((section(".text"))) void clear_memory(void *addr,
+                                                    uint32_t size_in_bytes) {
   uint32_t *p = (uint32_t *)addr;
   uint32_t count = size_in_bytes / 4; // Number of 32-bit words to clear
 
   for (uint32_t i = 0; i < count; i++) {
     p[i] = 0;
   }
+}
+
+__attribute__((section(".text"))) void
+copy_lma_into_phy(void *phy, const void *lma, uint32_t size) {
+  if (size == 0) {
+    return;
+  }
+  uint8_t *d = (uint8_t *)phy;
+  const uint8_t *s = (const uint8_t *)lma;
+  while (size--) {
+    *d++ = *s++;
+  }
+}
+__attribute__((section(".text"))) void copy_sections(void) {
+  copy_lma_into_phy(&_KERNEL_TEXT_PHY, &_KERNEL_TEXT_LMA,
+                    GET_SYMBOL_VALUE(_KERNEL_TEXT_SIZE));
+  copy_lma_into_phy(&_KERNEL_DATA_PHY, &_KERNEL_DATA_LMA,
+                    GET_SYMBOL_VALUE(_KERNEL_DATA_SIZE));
+  copy_lma_into_phy(&_KERNEL_RODATA_PHY, &_KERNEL_RODATA_LMA,
+                    GET_SYMBOL_VALUE(_KERNEL_RODATA_SIZE));
+
+  copy_lma_into_phy(&_TASK0_TEXT_PHY, &_TASK0_TEXT_LMA,
+                    GET_SYMBOL_VALUE(_TASK0_TEXT_SIZE));
+
+  copy_lma_into_phy(&_TASK1_TEXT_PHY, &_TASK1_TEXT_LMA,
+                    GET_SYMBOL_VALUE(_TASK1_TEXT_SIZE));
+  copy_lma_into_phy(&_TASK1_DATA_PHY, &_TASK1_DATA_LMA,
+                    GET_SYMBOL_VALUE(_TASK1_DATA_SIZE));
+  copy_lma_into_phy(&_TASK1_RODATA_PHY, &_TASK1_RODATA_LMA,
+                    GET_SYMBOL_VALUE(_TASK1_RODATA_SIZE));
+
+  copy_lma_into_phy(&_TASK2_TEXT_PHY, &_TASK2_TEXT_LMA,
+                    GET_SYMBOL_VALUE(_TASK2_TEXT_SIZE));
+  copy_lma_into_phy(&_TASK2_DATA_PHY, &_TASK2_DATA_LMA,
+                    GET_SYMBOL_VALUE(_TASK2_DATA_SIZE));
+  copy_lma_into_phy(&_TASK2_RODATA_PHY, &_TASK2_RODATA_LMA,
+                    GET_SYMBOL_VALUE(_TASK2_RODATA_SIZE));
 }
 
 __attribute__((section(".kernel.text.mmu"))) void c_mmu_init(void) {
@@ -100,6 +137,16 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
     break;
 
   case 1:
+    // The stack is initialized at its physical address (_TASK1_STACK_PHY).
+    // Since the physical address differs from the virtual address (VMA),
+    // we copy the initial stack contents to _TASK1_STACK_PHY before enabling
+    // the MMU. After pagination, the MMU maps the virtual address
+    // (_TASK1_STACK) to the physical address (_TASK1_STACK_PHY), so all stack
+    // accesses in C code use the VMA, while the actual memory resides at the
+    // physical address.
+    copy_lma_into_phy(&_TASK1_STACK_PHY, &_TASK1_STACK,
+                      GET_SYMBOL_VALUE(_TASK1_STACK_SIZE));
+
     c_log_mapping("TASK1 .text", (uint32_t)&_TASK1_TEXT_VMA,
                   (uint32_t)&_TASK1_TEXT_PHY,
                   GET_SYMBOL_VALUE(_TASK1_TEXT_SIZE));
@@ -137,6 +184,16 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
     break;
 
   case 2:
+    // The stack is initialized at its physical address (_TASK2_STACK_PHY).
+    // Since the physical address differs from the virtual address (VMA),
+    // we copy the initial stack contents to _TASK2_STACK_PHY before enabling
+    // the MMU. After pagination, the MMU maps the virtual address
+    // (_TASK2_STACK) to the physical address (_TASK2_STACK_PHY), so all stack
+    // accesses in C code use the VMA, while the actual memory resides at the
+    // physical address.
+    copy_lma_into_phy(&_TASK2_STACK_PHY, &_TASK2_STACK,
+                      GET_SYMBOL_VALUE(_TASK2_STACK_SIZE));
+
     c_log_mapping("TASK2 .text", (uint32_t)&_TASK2_TEXT_VMA,
                   (uint32_t)&_TASK2_TEXT_PHY,
                   GET_SYMBOL_VALUE(_TASK2_TEXT_SIZE));

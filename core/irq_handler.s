@@ -1,15 +1,11 @@
 .global _irq_handler
 
-.extern c_puts
-.extern c_putchar
-.extern c_puts_hex
-.extern c_run_entrypoint
-
-.section .text._irq_handler
+.extern c_irq_handler
 
 # Following:
 # - https://developer.arm.com/documentation/den0013/d/Interrupt-Handling/External-interrupt-requests/Simplistic-interrupt-handling
 # - https://developer.arm.com/documentation/den0013/d/Exception-Handling/Exception-priorities/The-return-instruction
+.section .text._irq_handler
 _irq_handler:
     sub lr, lr, #4
     stmfd sp!, {r0-r12, lr}
@@ -25,7 +21,3 @@ _irq_handler:
     mov sp, r7
     msr spsr, r8
     ldmfd sp!, {r0-r12, pc}^
-
-.section .data
-msg:
-    .asciz "IRQ "

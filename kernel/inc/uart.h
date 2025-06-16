@@ -26,7 +26,7 @@ typedef struct {
 
 // Function Definitions
 
-void c__UART0_init();
+void c_UART0_init();
 void c_putchar(char c);
 void c_puts(const char *s);
 void c_putsln(const char *s);

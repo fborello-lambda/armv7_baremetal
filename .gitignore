@@ -4,3 +4,5 @@ bin/*
 obj/*
 !bin/.gitkeep
 !obj/.gitkeep
+gdb.txt
+.vscode

@@ -1,6 +1,6 @@
 #include "inc/uart.h"
 
-__attribute__((section(".text"))) void c__UART0_init() {
+__attribute__((section(".text"))) void c_UART0_init() {
   _uart_t *const UART0 = (_uart_t *)UART0_ADDR;
 
   UART0->CR &= ~CR_UARTEN;

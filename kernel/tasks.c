@@ -1,89 +1,65 @@
 #include "inc/tasks.h"
+#include "../sys/inc/logger.h"
+#include "inc/mmu.h"
 #include "inc/sched.h"
 #include "inc/uart.h"
 
-static uint32_t global0_var = 0;
-static uint32_t global1_var = 0xFFFFFFFF;
-
-void task_idle() {
-  c_putsln("Task idle");
+__attribute__((section(".task0.text"))) void task_idle() {
+  c_putsln("[TASK0] first execution");
   while (1) {
     asm("wfi");
   }
 }
 
-void task1() {
+__attribute__((section(".task1.rodata"))) const char str_task1[] =
+    "[TASK1] first execution";
+// #define __TASK1_RAREA_START 0x70A00000
+// #define __TASK1_RAREA_SIZE 0x10000
+__attribute__((section(".task1.text"))) void task1() {
+  // c_log_info(str_task1);
+
+  uint32_t *addr = (uint32_t *)&_TASK1_RAREA_START_VMA;
+  uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;
+  uint32_t num_words = size_in_bytes / sizeof(uint32_t);
+  uint32_t temp_original;
+
   while (1) {
-    static uint32_t local_var = 0;
-    //_systick_t now = c_systick_get();
-    // c_puts("Task 1, systicks: ");
-    // c_puts_hex(now);
-    // c_putchar('\n');
-    // c_puts("local_var = ");
-    // c_puts_hex(local_var);
-    // c_putchar('\n');
+    for (uint32_t i = 0; i < num_words; i++) {
+      // Save original
+      temp_original = addr[i];
 
-    local_var++;
-    global0_var++;
+      // Write new value
+      addr[i] = 0x55AA55AA;
 
-    // c_putsln("Task 1 finished, systicks: ");
-    // now = c_systick_get();
-    // c_puts_hex(now);
-    // c_puts("local_var = ");
-    // c_puts_hex(local_var);
-    // c_putchar('\n');
-    // c_putsln("global0_var = ");
-    // c_puts_hex(global0_var);
-    // c_putchar('\n');
+      // Verify
+      if (addr[i] != 0x55AA55AA) {
+        // Here there should be an error
+      }
+
+      // Restore
+      addr[i] = temp_original;
+    }
   }
 }
 
-void task2() {
+__attribute__((section(".task2.rodata"))) const char str_task2[] =
+    "[TASK2] first execution";
+// #define __TASK2_RAREA_START 0x70A10000
+// #define __TASK2_RAREA_SIZE 0x10000
+__attribute__((section(".task2.text"))) void task2() {
+  // c_log_info(str_task2);
+  asm("swi #0x1");
+
+  uint32_t *addr = (uint32_t *)&_TASK2_RAREA_START_VMA;
+  uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;
+  uint32_t num_words = size_in_bytes / sizeof(uint32_t);
+
   while (1) {
-    static uint32_t local_var = 0xFFFFFFFF;
-    //_systick_t now = c_systick_get();
-    // c_puts("Task 2, systicks: ");
-    // c_puts_hex(now);
-    // c_putchar('\n');
-    // c_puts("local_var = ");
-    // c_puts_hex(local_var);
-    // c_putchar('\n');
+    for (uint32_t i = 0; i < num_words; i++) {
 
-    local_var--;
-    global1_var--;
+      uint32_t val = addr[i];
 
-    // c_puts("Task 2 finished, systicks: ");
-    // now = c_systick_get();
-    // c_puts_hex(now);
-    // c_putchar('\n');
-    // c_puts("local_var = ");
-    // c_puts_hex(local_var);
-    // c_putchar('\n');
-    // c_puts("global1_var = ");
-    // c_puts_hex(global1_var);
-    // c_putchar('\n');
-  }
-}
-
-void task3() {
-  while (1) {
-    //_systick_t now = c_systick_get();
-    // c_puts("Task 3, systicks: ");
-    // c_puts_hex(now);
-    // c_putchar('\n');
-
-    global1_var++;
-    global0_var--;
-
-    // c_puts("Task 3 finished, systicks: ");
-    // now = c_systick_get();
-    // c_puts_hex(now);
-    // c_putchar('\n');
-    // c_puts("global0_var = ");
-    // c_puts_hex(global0_var);
-    // c_putchar('\n');
-    // c_puts("global1_var = ");
-    // c_puts_hex(global1_var);
-    // c_putchar('\n');
+      addr[i] = ~val;
+    }
   }
 }

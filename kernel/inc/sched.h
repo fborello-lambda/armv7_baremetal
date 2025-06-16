@@ -22,15 +22,16 @@ typedef void (*_task_ptr_t)(void);
 typedef uint8_t _task_id_t;
 
 typedef struct {
-  uint32_t *svc_sp;
+  uint32_t *sp;
   uint32_t *irq_sp;
+  uint32_t *ttbr0;
   _task_id_t id;
   _task_ptr_t entrypoint;
   _systick_t task_ticks;
   _systick_t current_ticks;
 } _task_t;
 
-#define MAX_TASKS 4u
+#define MAX_TASKS 3u
 
 // Function Definitions
 

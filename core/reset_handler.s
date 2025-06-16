@@ -1,6 +1,6 @@
 .global _reset_handler
 
-.extern _start
+.extern main
 .extern _vector_table
 .extern _vector_table_end
 
@@ -68,7 +68,7 @@ _reset_handler:
     ldmia   r0!, {r2-r8}
     stmia   r1!, {r2-r8}
 
-    b _start
+    b main
 
 /*
 Check the current mode and stack pointer

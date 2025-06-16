@@ -4,7 +4,8 @@
 #include "inc/uart.h"
 // CTX should have a struct that reflects the pushed data inside the
 // asm_irq_handler
-__attribute__((section(".text"))) uint32_t c_irq_handler(_ctx_t *ctx) {
+__attribute__((section(".text._irq_handler"))) uint32_t
+c_irq_handler(_ctx_t *ctx) {
   _gicc_t *const GICC0 = (_gicc_t *)GICC0_ADDR;
   _timer_t *const TIMER0 = (_timer_t *)TIMER0_ADDR;
 

@@ -10,24 +10,26 @@ This project is focused on booting an ARMv7 processor using QEMU and GDB, primar
   - [Table of Contents](#table-of-contents)
 - [Dependencies](#dependencies)
 - [How](#how)
-  - [To build and run the project:](#to-build-and-run-the-project)
+  - [Build and run the project](#build-and-run-the-project)
 - [Scheduling](#scheduling)
   - [Resources](#resources)
 - [What and Why Nix?](#what-and-why-nix)
 - [References](#references)
   - [Extras](#extras)
-    - [Booting](#booting)
-    - [Exception Handling](#exception-handling)
-    - [UART PL011](#uart-pl011)
+  - [Booting](#booting)
+  - [Exception Handling](#exception-handling)
     - [GIC](#gic)
     - [TIMER](#timer)
-    - [Videos](#videos)
-    - [Online Emulator](#online-emulator)
-    - [GDB extras](#gdb-extras)
+  - [UART PL011](#uart-pl011)
+  - [MMU](#mmu)
+  - [Videos](#videos)
+  - [Online Emulator](#online-emulator)
+  - [GDB extras](#gdb-extras)
 
 # Dependencies
 
 Ubuntu/Debian packages:
+
 - gcc-arm-none-eabi
 - gdb-arm-none-eabi
 - qemu-system
@@ -35,6 +37,7 @@ Ubuntu/Debian packages:
 Or
 
 Nix(package manager):
+
 - [nix](https://nixos.org/download/) &rarr; installs `nix-shell`
 - [nixfmt](https://github.com/NixOS/nixfmt) (optional)
 
@@ -43,8 +46,7 @@ Nix(package manager):
 > [!IMPORTANT]
 > The Makefile contains targets for both the Nix package manager and Ubuntu/Debian packages. The targets starting with `nix.` should be fully functional on any machine that supports the nix-shell environment.
 
-
-## To build and run the project:
+## Build and run the project
 
 1. Run `make qemuA8` to execute the project on QEMU.
 2. Open a new terminal and run `make debug` to start debugging the project.
@@ -89,7 +91,7 @@ make build RS=1
 
 # Scheduling
 
-The scheduler works on top of the Timer interruptions, utilizing a straightforward algorithm designed for educational purposes. When a task is running, it continuously checks for timer interruptions. Upon receiving a timer interrupt, the system invokes the irq_handler.s, which then calls the c_irq_handler function, passing the current task's context as an argument (a pointer to the stack). The c_scheduler function is then executed to determine whether the current task has exceeded its allocated time slice, indicated by comparing current_task.current_ticks with current_task.task_ticks. If the task has not yet reached its time limit, the system returns to the interrupt handler to continue execution. However, if the time limit is reached, the scheduler performs context switching. This involves saving the current task's interrupt stack pointer (irq_sp) from the assembly context, switching to Supervisor (SVC) mode, and saving the SVC stack pointer of the current task. The scheduler then loads the SVC stack pointer of the next task to be executed, switches back to IRQ mode, and finally loads the interrupt stack pointer of the new task. This cycle repeats, ensuring efficient multitasking and responsive task management on the ARMv7 architecture. 
+The scheduler works on top of the Timer interruptions, utilizing a straightforward algorithm designed for educational purposes. When a task is running, it continuously checks for timer interruptions. Upon receiving a timer interrupt, the system invokes the irq_handler.s, which then calls the c_irq_handler function, passing the current task's context as an argument (a pointer to the stack). The c_scheduler function is then executed to determine whether the current task has exceeded its allocated time slice, indicated by comparing current_task.current_ticks with current_task.task_ticks. If the task has not yet reached its time limit, the system returns to the interrupt handler to continue execution. However, if the time limit is reached, the scheduler performs context switching. This involves saving the current task's interrupt stack pointer (irq_sp) from the assembly context, switching to Supervisor (SVC) mode, and saving the SVC stack pointer of the current task. The scheduler then loads the SVC stack pointer of the next task to be executed, switches back to IRQ mode, and finally loads the interrupt stack pointer of the new task. This cycle repeats, ensuring efficient multitasking and responsive task management on the ARMv7 architecture.
 
 <div style="text-align: center">
 
@@ -114,12 +116,8 @@ flowchart TD
 
 </div>
 
-
-> [!IMPORTANT]
-> There is a bug when printing inside the tasks, which seems to be a stack overflow problem. This issue requires further investigation and debugging to ensure the stability and reliability of the scheduler implementation.
-
-
 ## Resources
+
 - [CPU Scheduling Basics - YouTube](https://www.youtube.com/watch?v=Jkmy2YLUbUY)
 - [baremetal-arm/doc/08_scheduling.md at 09-wip · umanovskis/baremetal-arm · GitHub](https://github.com/umanovskis/baremetal-arm/blob/09-wip/doc/08_scheduling.md)
 
@@ -146,14 +144,15 @@ These features make Nix an excellent tool for creating reproducible development 
 - [ARMV7 - ASM Quick Reference](https://courses.cs.washington.edu/courses/cse469/20wi/armv7.pdf)
 - [ARM - Programmer's Guide](https://developer.arm.com/documentation/den0013/d)
 - Machine used by QEMU &rarr; [RealView Platform Baseboard for Cortex-A8 User Guide](https://developer.arm.com/documentation/dui0417/d/programmer-s-reference)
-- Genearal ARMv7 guide &rarr; [baremetal-arm/doc/00\_introduction.md at master · umanovskis/baremetal-arm](https://github.com/umanovskis/baremetal-arm/blob/master/doc/00_introduction.md)
+- Genearal ARMv7 guide &rarr; [baremetal-arm/doc/00_introduction.md at master · umanovskis/baremetal-arm](https://github.com/umanovskis/baremetal-arm/blob/master/doc/00_introduction.md)
 
 ## Extras
 
 - [Guide for ARMv7-A | Registers](https://developer.arm.com/documentation/den0013/d/ARM-Processor-Modes-and-Registers/Registers)
 - [LiteralPools | ldr](https://stackoverflow.com/a/17215118)
 
-### Booting
+## Booting
+
 - [ARMv7-A PSRs](https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/The-System-Level-Programmers--Model/ARM-processor-modes-and-core-registers/Program-Status-Registers--PSRs-)
 - [Guide for ARMv7-A | Booting](https://developer.arm.com/documentation/den0013/d/Boot-Code/Booting-a-bare-metal-system?lang=en)
 - [ARM bootloader: Interrupt Vector Table Understanding - Stack Overflow](https://stackoverflow.com/questions/21312963/arm-bootloader-interrupt-vector-table-understanding)
@@ -161,8 +160,10 @@ These features make Nix an excellent tool for creating reproducible development 
 - [Stack Pointer Init](https://developer.arm.com/documentation/dui0471/m/embedded-software-development/stack-pointer-initialization)
 - [ARMv7-A Processor Modes](https://developer.arm.com/documentation/den0013/d/ARM-Processor-Modes-and-Registers)
 
-### Exception Handling
+## Exception Handling
+
 Exceptions take into account the interrupts (`IRQs`): [Guide for ARMv7-A | Types of Exception](https://developer.arm.com/documentation/den0013/d/Exception-Handling/Types-of-exception)
+
 - [ARM Developer Guide | Handling Exceptions](https://developer.arm.com/documentation/dui0056/d/handling-processor-exceptions)
 - [Guide for ARMv7-A | Exception Handling](https://developer.arm.com/documentation/den0013/d/Exception-Handling/Exception-handling)
 - [Guide for ARMv7-A | Return from exception](https://developer.arm.com/documentation/den0013/d/Exception-Handling/Exception-priorities/The-return-instruction)
@@ -170,35 +171,43 @@ Exceptions take into account the interrupts (`IRQs`): [Guide for ARMv7-A | Types
 - [Guide for ARMv7-A | Simplistic Interrupt Handling](https://developer.arm.com/documentation/den0013/d/Interrupt-Handling/External-interrupt-requests/Simplistic-interrupt-handling)
 - [Guide for ARMv7-A | Nested Interrupt Handling](https://developer.arm.com/documentation/den0013/d/Interrupt-Handling/External-interrupt-requests/Nested-interrupt-handling)
 
-
-### UART PL011
-- [PrimeCell UART (PL011) Technical Reference Manual r1p5](https://developer.arm.com/documentation/ddi0183/g/programmers-model/summary-of-registers)
-- [ARMs PL011 UART | Welcome to the Mike’s homepage!](https://krinkinmu.github.io/2020/11/29/PL011.html)
-- [Hello world for bare metal ARM using QEMU | Freedom Embedded](https://balau82.wordpress.com/2010/02/28/hello-world-for-bare-metal-arm-using-qemu/)
-- [Emulating ARM PL011 serial ports | Freedom Embedded](https://balau82.wordpress.com/2010/11/30/emulating-arm-pl011-serial-ports/)
-
-
 ### GIC
-- [baremetal-arm/doc/07\_interrupts.md at master · umanovskis/baremetal-arm · GitHub](https://github.com/umanovskis/baremetal-arm/blob/master/doc/07_interrupts.md)
+
+- [baremetal-arm/doc/07_interrupts.md at master · umanovskis/baremetal-arm · GitHub](https://github.com/umanovskis/baremetal-arm/blob/master/doc/07_interrupts.md)
 - [RealView Platform Baseboard for Cortex-A8 User Guide | GIC](https://developer.arm.com/documentation/dui0417/d/programmer-s-reference/generic-interrupt-controller--gic/generic-interrupt-controller-registers)
   - Important: Interrupt Acknowledge &rarr; has the irq number
 - [RealView Platform Baseboard for Cortex-A8 User Guide | IRQs IDs](https://developer.arm.com/documentation/dui0417/d/programmer-s-reference/generic-interrupt-controller--gic/interrupt-signals)
   - TIMER0 ID: 36
 
 ### TIMER
+
 - [ARM Dual-Timer Module (SP804) Technical Reference Manual r1p0](https://developer.arm.com/documentation/ddi0271/d/programmer-s-model/summary-of-registers)
 
-### Videos
+## UART PL011
+
+- [PrimeCell UART (PL011) Technical Reference Manual r1p5](https://developer.arm.com/documentation/ddi0183/g/programmers-model/summary-of-registers)
+- [ARMs PL011 UART | Welcome to the Mike’s homepage!](https://krinkinmu.github.io/2020/11/29/PL011.html)
+- [Hello world for bare metal ARM using QEMU | Freedom Embedded](https://balau82.wordpress.com/2010/02/28/hello-world-for-bare-metal-arm-using-qemu/)
+- [Emulating ARM PL011 serial ports | Freedom Embedded](https://balau82.wordpress.com/2010/11/30/emulating-arm-pl011-serial-ports/)
+
+## MMU
+
+- [ARM Cortex-A Series Programmer's Guide for ARMv7-A - The MMU](https://developer.arm.com/documentation/den0013/d/The-Memory-Management-Unit)
+- [ARM Architecture Reference Manual ARMv7-A and ARMv7-R edition - VMSA](https://developer.arm.com/documentation/ddi0406/cb/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-?lang=en)
+- [ARM Architecture Reference Manual ARMv7-A and ARMv7-R - DACR register](https://developer.arm.com/documentation/ddi0406/c/System-Level-Architecture/System-Control-Registers-in-a-VMSA-implementation/VMSA-System-control-registers-descriptions--in-register-order/DACR--Domain-Access-Control-Register--VMSA)
+- [Translation Tables](https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-/Translation-tables/Translation-table-entry-formats?lang=en)
+- [Access Flags](https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-/Memory-access-control/Access-permissions?lang=en)
+
+## Videos
 
 - [Introduction to Assembly Programming with ARM - Setting up Qemu for ARM - YouTube](https://www.youtube.com/watch?v=WubAuz4hPpY)
 - [X86 Needs To Die - YouTube](https://www.youtube.com/watch?v=xCBrtopAG80)
 
-### Online Emulator
+## Online Emulator
 
 - [CPUlator ARMv7 System Simulator](https://cpulator.01xz.net/?sys=arm)
 
-
-### GDB extras
+## GDB extras
 
 - [c - How do I show what fields a struct has in GDB? - Stack Overflow](https://stackoverflow.com/questions/1768620/how-do-i-show-what-fields-a-struct-has-in-gdb/42320040#42320040)
 - [Debugging with GDB - Examining Data](https://web.mit.edu/gnu/doc/html/gdb_10.html)

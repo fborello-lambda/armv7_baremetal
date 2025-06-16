@@ -1,5 +1,4 @@
 .global _swi_handler
-.section .text._swi_handler
 
 .extern c_puts
 .extern c_putchar
@@ -8,12 +7,13 @@
 # Following:
 # - https://developer.arm.com/documentation/den0013/d/Interrupt-Handling/External-interrupt-requests/Simplistic-interrupt-handling
 # - https://developer.arm.com/documentation/den0013/d/Exception-Handling/Exception-priorities/The-return-instruction
+.section .text._swi_handler
 _swi_handler:
     push {r0-r5, ip, lr}
     # bl clear_swi
     # bl c_swi_handler
     mov r5, lr // <--- VERY IMPORTANT
-    // The lr is later used to link back to this handler after the rs_putstr call
+    // The lr is later used to link back to this handler after a function call
 
     ldr r0, =msg
     ldr r10, =c_puts

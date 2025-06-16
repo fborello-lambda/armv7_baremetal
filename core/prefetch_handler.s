@@ -1,4 +1,7 @@
 .global _prefetch_handler
+
+.extern c_prefetch_handler
+
 .section .text._prefetch_handler
 
 # Following:
@@ -7,6 +10,6 @@
 _prefetch_handler:
     push {r0-r3, ip, lr}
     # bl clear_prefetch
-    # bl c_prefetch_handler
+    bl c_prefetch_handler
     pop {r0-r3, ip, lr}
     subs pc, lr, #4

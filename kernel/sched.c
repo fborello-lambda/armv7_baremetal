@@ -1,4 +1,5 @@
 #include "inc/sched.h"
+#include "../sys/inc/logger.h"
 #include "inc/mmu.h"
 #include "inc/tasks.h"
 #include "inc/uart.h"
@@ -6,11 +7,13 @@
 
 static volatile _systick_t systick = 0;
 
-__attribute__((section(".text"))) void c_systick_handler() { systick++; }
+__attribute__((section(".kernel.text"))) void c_systick_handler() { systick++; }
 
-__attribute__((section(".text"))) _systick_t c_systick_get() { return systick; }
+__attribute__((section(".kernel.text"))) _systick_t c_systick_get() {
+  return systick;
+}
 
-__attribute__((section(".text"))) void c_delay(_systick_t ticks) {
+__attribute__((section(".kernel.text"))) void c_delay(_systick_t ticks) {
   _systick_t start = systick;
   while (systick - start < ticks) {
   }
@@ -24,22 +27,20 @@ static _task_t *current_task = NULL;
 extern uint32_t __task0_sp;
 extern uint32_t __task1_sp;
 extern uint32_t __task2_sp;
-extern uint32_t __task3_sp;
-uint32_t *task_sp[] = {&__task0_sp, &__task1_sp, &__task2_sp, &__task3_sp};
+uint32_t *task_sp[] = {&__task0_sp, &__task1_sp, &__task2_sp};
 
 /* IRQ stack pointers for tasks */
 extern uint32_t __task0_irq_sp;
 extern uint32_t __task1_irq_sp;
 extern uint32_t __task2_irq_sp;
-extern uint32_t __task3_irq_sp;
-uint32_t *task_irq_sp[] = {&__task0_irq_sp, &__task1_irq_sp, &__task2_irq_sp,
-                           &__task3_irq_sp};
+uint32_t *task_irq_sp[] = {&__task0_irq_sp, &__task1_irq_sp, &__task2_irq_sp};
 
 /* MMU */
+// TODO: i should isolate the tables inside each task's .data section maybe.
 mmu_tables_t mmu_tables[MAX_TASKS] __attribute__((section(".mmu_tables")));
 
-__attribute__((section(".text"))) void c_task_init(_task_ptr_t entrypoint,
-                                                   _systick_t ticks) {
+__attribute__((section(".kernel.text"))) void
+c_task_init(_task_ptr_t entrypoint, _systick_t ticks) {
 
   // Save the cpsr with the IRQ bit set, so it can be pushed to the stack
   uint32_t cpsr;
@@ -71,25 +72,18 @@ __attribute__((section(".text"))) void c_task_init(_task_ptr_t entrypoint,
     *tasks[task_index].irq_sp = save_sp;
 
     // Set the TTBR0 address for each task
-    uint32_t *ttbr0 = (uint32_t *)&mmu_tables[task_index];
+    uint32_t *ttbr0 = mmu_tables[task_index].l1_table;
     tasks[task_index].ttbr0 = ttbr0;
-    // TODO, the -1024 is to match the length of the stack
-    // the arrays store the sp_end position, we need the sp_start
-    // Remember that the stack starts from a low memory position
-    // and goes to a higher memory addr.
-    c_mmu_fill_tables(&mmu_tables[task_index],
-                      (uint32_t)task_sp[task_index] - (1024 * 4),
-                      (uint32_t)task_irq_sp[task_index] - (1024 * 4));
+    c_mmu_fill_tables(&mmu_tables[task_index], task_index);
 
     task_index++;
   }
 }
 
-__attribute__((section(".text"))) void c_scheduler_init(void) {
-  c_task_init(task_idle, 5u);
-  c_task_init(task1, 8u);
-  c_task_init(task2, 12u);
-  c_task_init(task3, 5u);
+__attribute__((section(".kernel.text"))) void c_scheduler_init(void) {
+  c_task_init(task_idle, 10u);
+  c_task_init(task1, 10u);
+  c_task_init(task2, 10u);
   current_task = &tasks[0];
 
   // Set the TTBR0 register
@@ -97,7 +91,7 @@ __attribute__((section(".text"))) void c_scheduler_init(void) {
   // Start the MMU
   c_mmu_init();
 
-  c_putsln("Board init done");
+  c_log_info("Scheduler init Done");
 
   // The IRQ is enabled on low, thats why bic instr is used
   // mrs r0, cpsr
@@ -109,7 +103,7 @@ __attribute__((section(".text"))) void c_scheduler_init(void) {
   current_task->entrypoint();
 }
 
-__attribute__((section(".text"))) uint32_t c_scheduler(_ctx_t *ctx) {
+__attribute__((section(".kernel.text"))) uint32_t c_scheduler(_ctx_t *ctx) {
   current_task->current_ticks++;
   if (current_task->current_ticks >= current_task->task_ticks) {
     // Switch to SVC mode to save svc_sp
@@ -130,17 +124,25 @@ __attribute__((section(".text"))) uint32_t c_scheduler(_ctx_t *ctx) {
     // Set the current task to the new task_id
     current_task = &tasks[id];
 
-    // Switch to SVC mode to use the new task's svc_sp
+    uint32_t *new_svc_sp = current_task->svc_sp;
     asm volatile("cps #0x13    \n\t" // Switch to SVC mode
                  "mov sp, %0   \n\t" // Load the new task's SVC stack pointer
-                 : "=r"(current_task->svc_sp));
+                 :
+                 : "r"(new_svc_sp));
     // Switch back to IRQ mode
     asm volatile("cps #0x12");
     // Set the TTBR0 of the current_task
     __asm__ volatile("mcr p15, 0, %0, c2, c0, 0" : : "r"(current_task->ttbr0));
 
-    c_puts_hex(current_task->id);
-    c_putchar('\n');
+    c_log_taskswitch(current_task->id);
+
+    for (int i = 0; i < 16; i++) {
+      if (i == 15) {
+        c_puts("The PC would be: ");
+        c_puts_hex(current_task->irq_sp[i]);
+        c_putchar('\n');
+      }
+    }
   }
   return (uint32_t)current_task->irq_sp;
 }

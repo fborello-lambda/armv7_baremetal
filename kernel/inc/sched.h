@@ -31,7 +31,7 @@ typedef struct {
   _systick_t current_ticks;
 } _task_t;
 
-#define MAX_TASKS 4u
+#define MAX_TASKS 3u
 
 // Function Definitions
 

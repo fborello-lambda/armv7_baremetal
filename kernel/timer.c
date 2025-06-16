@@ -1,6 +1,6 @@
 #include "inc/timer.h"
 
-__attribute__((section(".text"))) void c_timer_init() {
+__attribute__((section(".kernel.text"))) void c_timer_init() {
   _timer_t *const TIMER0 = (_timer_t *)TIMER0_ADDR;
 
   // The TimerXLoad Register is a 32-bit register that contains the value from

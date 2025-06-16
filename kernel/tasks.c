@@ -1,38 +1,60 @@
 #include "inc/tasks.h"
+#include "../sys/inc/logger.h"
+#include "inc/mmu.h"
 #include "inc/sched.h"
 #include "inc/uart.h"
 
-static uint32_t global0_var = 0;
-static uint32_t global1_var = 0xFFFFFFFF;
-
-__attribute__((section(".text.task_idle"))) void task_idle() {
-  c_putsln("Task idle");
+__attribute__((section(".task0.text"))) void task_idle() {
+  c_putsln("[TASK0] first execution");
   while (1) {
     asm("wfi");
   }
 }
 
-__attribute__((section(".text.task_1"))) void task1() {
-  while (1) {
-    static uint32_t local_var = 0;
+__attribute__((section(".task1.rodata"))) const char str_task1[] =
+    "[TASK1] first execution";
+__attribute__((section(".task1.text"))) void task1() {
+  c_log_info(str_task1);
 
-    local_var++;
-    global0_var++;
+  uint32_t *addr = (uint32_t *)&_TASK1_RAREA_START_VMA;
+  uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;
+  uint32_t num_words = size_in_bytes / sizeof(uint32_t);
+  uint32_t temp_original;
+
+  while (1) {
+    for (uint32_t i = 0; i < num_words; i++) {
+      // Save original
+      temp_original = addr[i];
+
+      // Write new value
+      addr[i] = 0x55AA55AA;
+
+      // Verify
+      if (addr[i] != 0x55AA55AA) {
+        // Here there should be an error
+      }
+
+      // Restore
+      addr[i] = temp_original;
+    }
   }
 }
 
-__attribute__((section(".text.task_2"))) void task2() {
-  while (1) {
-    static uint32_t local_var = 0xFFFFFFFF;
+__attribute__((section(".task2.rodata"))) const char str_task2[] =
+    "[TASK2] first execution";
+__attribute__((section(".task2.text"))) void task2() {
+  c_log_info(str_task2);
 
-    local_var--;
-    global1_var--;
-  }
-}
+  uint32_t *addr = (uint32_t *)&_TASK2_RAREA_START_VMA;
+  uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;
+  uint32_t num_words = size_in_bytes / sizeof(uint32_t);
 
-__attribute__((section(".text.task_3"))) void task3() {
   while (1) {
-    global1_var++;
-    global0_var--;
+    for (uint32_t i = 0; i < num_words; i++) {
+
+      uint32_t val = addr[i];
+
+      addr[i] = ~val;
+    }
   }
 }

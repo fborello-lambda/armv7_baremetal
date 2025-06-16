@@ -1,3 +1,4 @@
+#include "../sys/inc/logger.h"
 #include "inc/gic.h"
 #include "inc/mmu.h"
 #include "inc/sched.h"
@@ -5,9 +6,8 @@
 #include "inc/timer.h"
 #include "inc/uart.h"
 
-extern uint32_t g_kernel_l1_table[];
-
-extern __attribute__((section(".text"))) void c_board_init(void) {
+__attribute__((section(".text"))) void c_board_init(void) {
+  copy_sections();
   c_gic_init();
   c_timer_init();
 
@@ -15,6 +15,7 @@ extern __attribute__((section(".text"))) void c_board_init(void) {
   // on Realview pb8
   // Init UART
   c_UART0_init();
+  c_log_info("Starting Scheduler...");
 
   // Init Tasks / Scheduler
   // It also fills the tables needed to start the MMU

@@ -93,11 +93,18 @@ nix.debug: ## Debug the project using GDB with nix-shell
 debug: obj/image.elf ## Debug the project using GDB
 	gdb-multiarch -q \
 	-ex "target remote :2159" \
+	-ex "l" \
+	$<
+.PHONY: debug
+
+debug.log: obj/image.elf ## Debug the project using GDB with logging enabled
+	gdb-multiarch -q \
+	-ex "target remote :2159" \
 	-ex "set logging file ${LOG_FILE}" \
 	-ex "set logging on" \
 	-ex "l" \
 	$<
-.PHONY: debug
+.PHONY: debug.log
 
 ddd.debug:
 	ddd --debugger 'gdb-multiarch \

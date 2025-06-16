@@ -25,8 +25,29 @@ typedef struct {
 
 // Paging Descriptor flags
 #define L1_TYPE_COARSE_TABLE 0x1
-// L2 flags (small page, AP=RW, cacheable, bufferable, executable)
-#define L2_DEFAULT_FLAGS 0x32
+// Table Entry format:
+// https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-/Translation-tables/Translation-table-entry-formats?lang=en
+// Access Flags:
+// https://developer.arm.com/documentation/ddi0406/b/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-/Memory-access-control/Access-permissions?lang=en
+#define L2_SMALL_PAGE_BASE 0b10
+// Shifts value to bit 9 for AP[2] (Access Permission bit 2)
+#define AP2(value) (value << 9)
+// Shifts value to bit 5 for AP[1] (Access Permission bit 1)
+#define AP1(value) (value << 5)
+// Shifts value to bit 4 for AP[0] (Access Permission bit 0)
+// As specified in the `Simplified access permissions model table`.
+#define AP0 1 << 4
+
+#define KRN_RW AP2(0) | AP1(0) | AP0
+#define USR_RW AP2(0) | AP1(1) | AP0
+#define KRN_RO AP2(1) | AP1(0) | AP0
+#define USR_RO AP2(1) | AP1(1) | AP0
+
+#define L2_USR_FLAGS L2_SMALL_PAGE_BASE | USR_RW // 0x32
+#define L2_USR_ROFLAGS L2_SMALL_PAGE_BASE | USR_RO
+#define L2_KRN_FLAGS L2_SMALL_PAGE_BASE | KRN_RW
+#define L2_KRN_ROFLAGS L2_SMALL_PAGE_BASE | KRN_RO
+#define L2_DEFAULT_FLAGS L2_KRN_FLAGS
 
 #define ERROR_L1_INDEX_OOR -1
 #define ERROR_L2_INDEX_OOR -2
@@ -38,7 +59,7 @@ void c_mmu_init(void);
 int32_t c_mmu_map_4kb_page(mmu_tables_t *tables, uint32_t virt_addr,
                            uint32_t phys_addr, uint32_t l2_flags);
 int32_t map_region(mmu_tables_t *tables, uint32_t virt_addr, uint32_t phys_addr,
-                   uint32_t size_in_bytes);
+                   uint32_t size_in_bytes, uint32_t l2_flags);
 void copy_lma_into_phy(void *phy, const void *lma, uint32_t size);
 void copy_sections(void);
 

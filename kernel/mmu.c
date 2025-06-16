@@ -55,7 +55,7 @@ __attribute__((section(".text"))) void copy_sections(void) {
 
 __attribute__((section(".kernel.text.mmu"))) void c_mmu_init(void) {
   // Set DACR to manager (all access)
-  __asm__ volatile("ldr r0, =0xFFFFFFFF\n"
+  __asm__ volatile("ldr r0, =0x55555555\n"
                    "mcr p15, 0, r0, c3, c0, 0\n" ::
                        : "r0");
   // Enable MMU (set M bit in SCTLR)
@@ -75,40 +75,42 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
   tables->next_l2_table = 0;
 
   c_log_mapping("Mapping RGN", 0x70010000, 0x70010000, 4 * 1024);
-  map_region(tables, 0x70010000, 0x70010000, 4 * 1024);
+  map_region(tables, 0x70010000, 0x70010000, 4 * 1024, L2_DEFAULT_FLAGS);
 
   c_log_mapping(".kernel.text", (uint32_t)&_KERNEL_TEXT_VMA,
                 (uint32_t)&_KERNEL_TEXT_PHY,
                 GET_SYMBOL_VALUE(_KERNEL_TEXT_SIZE));
   map_region(tables, (uint32_t)&_KERNEL_TEXT_VMA, (uint32_t)&_KERNEL_TEXT_PHY,
-             GET_SYMBOL_VALUE(_KERNEL_TEXT_SIZE));
+             GET_SYMBOL_VALUE(_KERNEL_TEXT_SIZE), L2_DEFAULT_FLAGS);
 
   c_log_mapping(".kernel.data", (uint32_t)&_KERNEL_DATA_VMA,
                 (uint32_t)&_KERNEL_DATA_PHY,
                 GET_SYMBOL_VALUE(_KERNEL_DATA_SIZE));
   map_region(tables, (uint32_t)&_KERNEL_DATA_VMA, (uint32_t)&_KERNEL_DATA_PHY,
-             GET_SYMBOL_VALUE(_KERNEL_DATA_SIZE));
+             GET_SYMBOL_VALUE(_KERNEL_DATA_SIZE), L2_DEFAULT_FLAGS);
 
   c_log_mapping(".kernel.rodata", (uint32_t)&_KERNEL_RODATA_VMA,
                 (uint32_t)&_KERNEL_RODATA_PHY,
                 GET_SYMBOL_VALUE(_KERNEL_RODATA_SIZE));
   map_region(tables, (uint32_t)&_KERNEL_RODATA_VMA,
              (uint32_t)&_KERNEL_RODATA_PHY,
-             GET_SYMBOL_VALUE(_KERNEL_RODATA_SIZE));
+             GET_SYMBOL_VALUE(_KERNEL_RODATA_SIZE), L2_DEFAULT_FLAGS);
 
   c_log_mapping(".kernel.bss", (uint32_t)&_KERNEL_BSS_VMA,
                 (uint32_t)&_KERNEL_BSS_PHY, GET_SYMBOL_VALUE(_KERNEL_BSS_SIZE));
   map_region(tables, (uint32_t)&_KERNEL_BSS_VMA, (uint32_t)&_KERNEL_BSS_PHY,
-             GET_SYMBOL_VALUE(_KERNEL_BSS_SIZE));
+             GET_SYMBOL_VALUE(_KERNEL_BSS_SIZE), L2_DEFAULT_FLAGS);
 
   c_log_mapping(".kernel.stack", (uint32_t)&_KERNEL_STACK,
                 (uint32_t)&_KERNEL_STACK, GET_SYMBOL_VALUE(_KERNEL_STACK_SIZE));
+  // CHECK: the stack has to be paginated as USR because the task2 and task1 are
+  // using it Should it? Investigate why
   map_region(tables, (uint32_t)&_KERNEL_STACK, (uint32_t)&_KERNEL_STACK,
-             GET_SYMBOL_VALUE(_KERNEL_STACK_SIZE));
+             GET_SYMBOL_VALUE(_KERNEL_STACK_SIZE), L2_DEFAULT_FLAGS);
 
   // MMU
   c_log_mapping("MMU region", 0x70080000, 0x70080000, 32 * 3 * 1024);
-  map_region(tables, 0x70080000, 0x70080000, 32 * 3 * 1024);
+  map_region(tables, 0x70080000, 0x70080000, 32 * 3 * 1024, L2_DEFAULT_FLAGS);
 
   // Vector Table
   c_log_mapping("Vector Table", 0x00000000, 0x00000000, 4 * 1024);
@@ -133,7 +135,7 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
                   (uint32_t)&_TASK0_TEXT_PHY,
                   GET_SYMBOL_VALUE(_TASK0_TEXT_SIZE));
     map_region(tables, (uint32_t)&_TASK0_TEXT_VMA, (uint32_t)&_TASK0_TEXT_PHY,
-               GET_SYMBOL_VALUE(_TASK0_TEXT_SIZE));
+               GET_SYMBOL_VALUE(_TASK0_TEXT_SIZE), L2_DEFAULT_FLAGS);
     break;
 
   case 1:
@@ -151,36 +153,37 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
                   (uint32_t)&_TASK1_TEXT_PHY,
                   GET_SYMBOL_VALUE(_TASK1_TEXT_SIZE));
     map_region(tables, (uint32_t)&_TASK1_TEXT_VMA, (uint32_t)&_TASK1_TEXT_PHY,
-               GET_SYMBOL_VALUE(_TASK1_TEXT_SIZE));
+               GET_SYMBOL_VALUE(_TASK1_TEXT_SIZE), L2_USR_ROFLAGS);
 
     c_log_mapping("TASK1 .data", (uint32_t)&_TASK1_DATA_VMA,
                   (uint32_t)&_TASK1_DATA_PHY,
                   GET_SYMBOL_VALUE(_TASK1_DATA_SIZE));
     map_region(tables, (uint32_t)&_TASK1_DATA_VMA, (uint32_t)&_TASK1_DATA_PHY,
-               GET_SYMBOL_VALUE(_TASK1_DATA_SIZE));
+               GET_SYMBOL_VALUE(_TASK1_DATA_SIZE), L2_USR_FLAGS);
 
     c_log_mapping("TASK1 .rodata", (uint32_t)&_TASK1_RODATA_VMA,
                   (uint32_t)&_TASK1_RODATA_PHY,
                   GET_SYMBOL_VALUE(_TASK1_RODATA_SIZE));
     map_region(tables, (uint32_t)&_TASK1_RODATA_VMA,
                (uint32_t)&_TASK1_RODATA_PHY,
-               GET_SYMBOL_VALUE(_TASK1_RODATA_SIZE));
+               GET_SYMBOL_VALUE(_TASK1_RODATA_SIZE), L2_USR_ROFLAGS);
 
     c_log_mapping("TASK1 .bss", (uint32_t)&_TASK1_BSS_VMA,
                   (uint32_t)&_TASK1_BSS_PHY, GET_SYMBOL_VALUE(_TASK1_BSS_SIZE));
     map_region(tables, (uint32_t)&_TASK1_BSS_VMA, (uint32_t)&_TASK1_BSS_PHY,
-               GET_SYMBOL_VALUE(_TASK1_BSS_SIZE));
+               GET_SYMBOL_VALUE(_TASK1_BSS_SIZE), L2_USR_ROFLAGS);
 
     c_log_mapping("TASK1 .stack", (uint32_t)&_TASK1_STACK,
                   (uint32_t)&_TASK1_STACK_PHY,
                   GET_SYMBOL_VALUE(_TASK1_STACK_SIZE));
     map_region(tables, (uint32_t)&_TASK1_STACK, (uint32_t)&_TASK1_STACK_PHY,
-               GET_SYMBOL_VALUE(_TASK1_STACK_SIZE));
+               GET_SYMBOL_VALUE(_TASK1_STACK_SIZE), L2_USR_FLAGS);
 
     c_log_mapping("TASK1 RAREA", (uint32_t)&_TASK1_RAREA_START_VMA,
                   (uint32_t)&_TASK1_RAREA_START_PHY, TASK1_RAREA_SIZE_B);
     map_region(tables, (uint32_t)&_TASK1_RAREA_START_VMA,
-               (uint32_t)&_TASK1_RAREA_START_PHY, TASK1_RAREA_SIZE_B);
+               (uint32_t)&_TASK1_RAREA_START_PHY, TASK1_RAREA_SIZE_B,
+               L2_USR_FLAGS);
     break;
 
   case 2:
@@ -198,36 +201,37 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
                   (uint32_t)&_TASK2_TEXT_PHY,
                   GET_SYMBOL_VALUE(_TASK2_TEXT_SIZE));
     map_region(tables, (uint32_t)&_TASK2_TEXT_VMA, (uint32_t)&_TASK2_TEXT_PHY,
-               GET_SYMBOL_VALUE(_TASK2_TEXT_SIZE));
+               GET_SYMBOL_VALUE(_TASK2_TEXT_SIZE), L2_USR_ROFLAGS);
 
     c_log_mapping("TASK2 .data", (uint32_t)&_TASK2_DATA_VMA,
                   (uint32_t)&_TASK2_DATA_PHY,
                   GET_SYMBOL_VALUE(_TASK2_DATA_SIZE));
     map_region(tables, (uint32_t)&_TASK2_DATA_VMA, (uint32_t)&_TASK2_DATA_PHY,
-               GET_SYMBOL_VALUE(_TASK2_DATA_SIZE));
+               GET_SYMBOL_VALUE(_TASK2_DATA_SIZE), L2_USR_ROFLAGS);
 
     c_log_mapping("TASK2 .rodata", (uint32_t)&_TASK2_RODATA_VMA,
                   (uint32_t)&_TASK2_RODATA_PHY,
                   GET_SYMBOL_VALUE(_TASK2_RODATA_SIZE));
     map_region(tables, (uint32_t)&_TASK2_RODATA_VMA,
                (uint32_t)&_TASK2_RODATA_PHY,
-               GET_SYMBOL_VALUE(_TASK2_RODATA_SIZE));
+               GET_SYMBOL_VALUE(_TASK2_RODATA_SIZE), L2_USR_FLAGS);
 
     c_log_mapping("TASK2 .bss", (uint32_t)&_TASK2_BSS_VMA,
                   (uint32_t)&_TASK2_BSS_PHY, GET_SYMBOL_VALUE(_TASK2_BSS_SIZE));
     map_region(tables, (uint32_t)&_TASK2_BSS_VMA, (uint32_t)&_TASK2_BSS_PHY,
-               GET_SYMBOL_VALUE(_TASK2_BSS_SIZE));
+               GET_SYMBOL_VALUE(_TASK2_BSS_SIZE), L2_USR_FLAGS);
 
     c_log_mapping("TASK2 .stack", (uint32_t)&_TASK2_STACK,
                   (uint32_t)&_TASK2_STACK_PHY,
                   GET_SYMBOL_VALUE(_TASK2_STACK_SIZE));
     map_region(tables, (uint32_t)&_TASK2_STACK, (uint32_t)&_TASK2_STACK_PHY,
-               GET_SYMBOL_VALUE(_TASK2_STACK_SIZE));
+               GET_SYMBOL_VALUE(_TASK2_STACK_SIZE), L2_USR_FLAGS);
 
     c_log_mapping("TASK2 RAREA", (uint32_t)&_TASK2_RAREA_START_VMA,
                   (uint32_t)&_TASK2_RAREA_START_PHY, TASK2_RAREA_SIZE_B);
     map_region(tables, (uint32_t)&_TASK2_RAREA_START_VMA,
-               (uint32_t)&_TASK2_RAREA_START_PHY, TASK2_RAREA_SIZE_B);
+               (uint32_t)&_TASK2_RAREA_START_PHY, TASK2_RAREA_SIZE_B,
+               L2_USR_FLAGS);
     break;
 
   default:
@@ -277,13 +281,13 @@ c_mmu_map_4kb_page(mmu_tables_t *tables, uint32_t virt_addr, uint32_t phys_addr,
 
 __attribute__((section(".kernel.text.mmu"))) int32_t
 map_region(mmu_tables_t *tables, uint32_t virt_addr, uint32_t phys_addr,
-           uint32_t size_in_bytes) {
+           uint32_t size_in_bytes, uint32_t l2_flags) {
   uint32_t pages = (size_in_bytes + 0xFFF) / 0x1000;
   for (uint32_t i = 0; i < pages; i++) {
     uint32_t va = virt_addr + i * 0x1000;
     uint32_t pa = phys_addr + i * 0x1000;
 
-    int ret = c_mmu_map_4kb_page(tables, va, pa, L2_DEFAULT_FLAGS);
+    int ret = c_mmu_map_4kb_page(tables, va, pa, l2_flags);
     if (ret != PAGING_SUCCESS) {
       c_log_error("Failed to map region");
       return ret;

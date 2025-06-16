@@ -13,8 +13,10 @@ __attribute__((section(".task0.text"))) void task_idle() {
 
 __attribute__((section(".task1.rodata"))) const char str_task1[] =
     "[TASK1] first execution";
+// #define __TASK1_RAREA_START 0x70A00000
+// #define __TASK1_RAREA_SIZE 0x10000
 __attribute__((section(".task1.text"))) void task1() {
-  c_log_info(str_task1);
+  // c_log_info(str_task1);
 
   uint32_t *addr = (uint32_t *)&_TASK1_RAREA_START_VMA;
   uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;
@@ -42,8 +44,11 @@ __attribute__((section(".task1.text"))) void task1() {
 
 __attribute__((section(".task2.rodata"))) const char str_task2[] =
     "[TASK2] first execution";
+// #define __TASK2_RAREA_START 0x70A10000
+// #define __TASK2_RAREA_SIZE 0x10000
 __attribute__((section(".task2.text"))) void task2() {
-  c_log_info(str_task2);
+  // c_log_info(str_task2);
+  asm("swi #0x1");
 
   uint32_t *addr = (uint32_t *)&_TASK2_RAREA_START_VMA;
   uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;

@@ -22,7 +22,7 @@ typedef void (*_task_ptr_t)(void);
 typedef uint8_t _task_id_t;
 
 typedef struct {
-  uint32_t *svc_sp;
+  uint32_t *sp;
   uint32_t *irq_sp;
   uint32_t *ttbr0;
   _task_id_t id;

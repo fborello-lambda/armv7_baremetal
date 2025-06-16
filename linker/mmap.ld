@@ -226,64 +226,75 @@ SECTIONS {
         . = ALIGN(16);
         __sys_sp = .;
 
+        /* 0x70020400 */
         _irq_stack_end = .;
         . += _IRQ_STACK_SIZE;
         . = ALIGN(16);
         __irq_sp = .;
 
+        /* 0x70020800 */
         _svc_stack_end = .;
         . += _SVC_STACK_SIZE;
         . = ALIGN(16);
         __svc_sp = .;
 
+        /* 0x70020A00 */
         _abt_stack_end = .;
         . += _ABT_STACK_SIZE;
         . = ALIGN(16);
         __abt_sp = .;
 
+        /* 0x70020E00 */
         _und_stack_end = .;
         . += _UND_STACK_SIZE;
         . = ALIGN(16);
         __und_sp = .;
 
+        /* 0x70021000 */
         /* SP for task0 */
         _task0_stack_end = .;
-        . += (_TASK_STACK_SIZE * 2);
+        . += (_TASK_STACK_SIZE);
         . = ALIGN(16);
         __task0_sp = .;
-
+        
+        /* 0x70021400 */
         /* IRQ_SP for task0 */
         _task0_irq_end = .;
-        . += (_TASK_STACK_SIZE * 2);
+        . += (_TASK_STACK_SIZE);
         . = ALIGN(16);
         __task0_irq_sp = .;
 
+        /* 0x70021800 */
         __stack_start = .;
     } > PUBLIC_STACK
 
     /* TODO: is the abt_stack needed? */
     .task1.stack (NOLOAD) : {
+        /* 0x70F52000 */
         _task1_stack_end = .;
         . += _TASK_STACK_SIZE;
         . = ALIGN(16);
         __task1_sp = .;
-        /* IRQ_SP for tasks */
+        /* 0x70F52400*/
          _task1_irq_end = .;
         . += _TASK_STACK_SIZE;
         . = ALIGN(16);
+        /* 0x70F52800*/
         __task1_irq_sp = .;
     } > TASK1_STACK
 
     /* TODO: is the abt_stack needed? */
     .task2.stack (NOLOAD) : {
+        /* 0x70F42000 */
         _task2_stack_end = .;
         . += _TASK_STACK_SIZE;
         . = ALIGN(16);
         __task2_sp = .;
-        /* IRQ_SP for tasks */
+        /* 0x70F42400 */
         _task2_irq_end = .;
         . += _TASK_STACK_SIZE;
         . = ALIGN(16);
         __task2_irq_sp = .;
+        /* 0x70F42800 */
     } > TASK2_STACK
 }

@@ -103,8 +103,6 @@ c_mmu_fill_tables(mmu_tables_t *tables, uint32_t task_id) {
 
   c_log_mapping(".kernel.stack", (uint32_t)&_KERNEL_STACK,
                 (uint32_t)&_KERNEL_STACK, GET_SYMBOL_VALUE(_KERNEL_STACK_SIZE));
-  // CHECK: the stack has to be paginated as USR because the task2 and task1 are
-  // using it Should it? Investigate why
   map_region(tables, (uint32_t)&_KERNEL_STACK, (uint32_t)&_KERNEL_STACK,
              GET_SYMBOL_VALUE(_KERNEL_STACK_SIZE), L2_DEFAULT_FLAGS);
 

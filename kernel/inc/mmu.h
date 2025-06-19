@@ -45,7 +45,7 @@ typedef struct {
 
 #define L2_USR_FLAGS L2_SMALL_PAGE_BASE | USR_RW // 0x32
 #define L2_USR_ROFLAGS L2_SMALL_PAGE_BASE | USR_RO
-#define L2_KRN_FLAGS L2_SMALL_PAGE_BASE | KRN_RW
+#define L2_KRN_FLAGS L2_SMALL_PAGE_BASE | KRN_RW // 0x12
 #define L2_KRN_ROFLAGS L2_SMALL_PAGE_BASE | KRN_RO
 #define L2_DEFAULT_FLAGS L2_KRN_FLAGS
 
@@ -64,7 +64,7 @@ void copy_lma_into_phy(void *phy, const void *lma, uint32_t size);
 void copy_sections(void);
 
 // Memory Map
-#define GET_SYMBOL_VALUE(sym) ((uint32_t) & (sym))
+#define GET_SYMBOL_VALUE(sym) ((uint32_t)&(sym))
 // KERNEL sections
 extern uint32_t _KERNEL_TEXT_LMA, _KERNEL_TEXT_VMA, _KERNEL_TEXT_PHY;
 extern uint32_t _KERNEL_DATA_LMA, _KERNEL_DATA_VMA, _KERNEL_DATA_PHY;

@@ -268,7 +268,6 @@ SECTIONS {
         __stack_start = .;
     } > PUBLIC_STACK
 
-    /* TODO: is the abt_stack needed? */
     .task1.stack (NOLOAD) : {
         /* 0x70F52000 */
         _task1_stack_end = .;
@@ -283,7 +282,6 @@ SECTIONS {
         __task1_irq_sp = .;
     } > TASK1_STACK
 
-    /* TODO: is the abt_stack needed? */
     .task2.stack (NOLOAD) : {
         /* 0x70F42000 */
         _task2_stack_end = .;

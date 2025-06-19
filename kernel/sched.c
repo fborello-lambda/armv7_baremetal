@@ -39,7 +39,7 @@ extern uint32_t __task2_irq_sp;
 uint32_t *task_irq_sp[] = {&__task0_irq_sp, &__task1_irq_sp, &__task2_irq_sp};
 
 /* MMU */
-// TODO: i should isolate the tables inside each task's .data section maybe.
+// IMPROVEMENT: Maybe the tables should be inside of each task's .data section.
 mmu_tables_t mmu_tables[MAX_TASKS] __attribute__((section(".mmu_tables")));
 
 __attribute__((section(".kernel.text"))) void
@@ -70,8 +70,8 @@ c_task_init(_task_ptr_t entrypoint, _systick_t ticks) {
 
     uint32_t save_sp = (uint32_t)tasks[task_index].irq_sp;
     tasks[task_index].irq_sp -= 1;
-    // Save a cpsr with the USR mode activated,
-    // so that the task1 and task2 run in usr mode.
+    // Save the cpsr with the USR mode set,
+    // so that the task1 and task2 are run in usr mode.
     if (task_index != 0) {
       cpsr &= ~CLR_MODE;
       cpsr |= USR_MODE;
@@ -152,7 +152,7 @@ __attribute__((section(".kernel.text"))) uint32_t c_scheduler(_ctx_t *ctx) {
       write_sp_usr((uint32_t)current_task->sp);
     }
 
-    // Remove, used for debugging purposes
+    // Used for debugging purposes
     //  for (int i = 0; i < 16; i++) {
     //    if (i == 15) {
     //      c_puts("The PC would be: ");

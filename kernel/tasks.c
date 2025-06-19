@@ -16,7 +16,12 @@ __attribute__((section(".task1.rodata"))) const char str_task1[] =
 // #define __TASK1_RAREA_START 0x70A00000
 // #define __TASK1_RAREA_SIZE 0x10000
 __attribute__((section(".task1.text"))) void task1() {
+  // The c_log_info() function is placed in the  .kernel.text section
+  // uncommenting it will cause a prefetch abort.
+  // The swi is logging the number 1 acting as a "system call".
   // c_log_info(str_task1);
+
+  asm("swi #0x1");
 
   uint32_t *addr = (uint32_t *)&_TASK1_RAREA_START_VMA;
   uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;
@@ -47,8 +52,12 @@ __attribute__((section(".task2.rodata"))) const char str_task2[] =
 // #define __TASK2_RAREA_START 0x70A10000
 // #define __TASK2_RAREA_SIZE 0x10000
 __attribute__((section(".task2.text"))) void task2() {
+  // The c_log_info() function is placed in the  .kernel.text section
+  // uncommenting it will cause a prefetch abort.
+  // The swi is logging the number 2 acting as a "system call".
   // c_log_info(str_task2);
-  asm("swi #0x1");
+
+  asm("swi #0x2");
 
   uint32_t *addr = (uint32_t *)&_TASK2_RAREA_START_VMA;
   uint32_t size_in_bytes = TASK2_RAREA_SIZE_B;

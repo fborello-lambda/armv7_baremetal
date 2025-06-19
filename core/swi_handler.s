@@ -1,8 +1,8 @@
 .global _swi_handler
 
-.extern c_puts
 .extern c_putchar
 .extern c_puts_hex
+.extern c_log_info
 
 # Following:
 # - https://developer.arm.com/documentation/den0013/d/Interrupt-Handling/External-interrupt-requests/Simplistic-interrupt-handling
@@ -16,7 +16,7 @@ _swi_handler:
     // The lr is later used to link back to this handler after a function call
 
     ldr r0, =msg
-    ldr r10, =c_puts
+    ldr r10, =c_log_info
     blx r10
 
     # Get the svc <imm> number
@@ -38,4 +38,4 @@ _swi_handler:
 
 .section .data
 msg:
-    .asciz "SWI "
+    .asciz "SWI Handler with number:"

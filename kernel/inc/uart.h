@@ -25,7 +25,6 @@ typedef struct {
 } _uart_t;
 
 // Function Definitions
-
 void c_UART0_init();
 void c_putchar(char c);
 void c_puts(const char *s);

@@ -112,12 +112,6 @@ ddd.debug:
 		--ex "target remote localhost:2159"' obj/image.elf
 .PHONY: ddd.debug
 
-ddd.debug:
-	ddd --debugger 'gdb-multiarch \
-		--ex "set auto-load safe-path /" \
-		--ex "target remote localhost:2159"' obj/image.elf
-.PHONY: ddd.debug
-
 nix.ddd.debug: ## Debug the project using DDD and nix-shell, attach to localhost:2159
 	nix-shell --run 'ddd \
 		--debugger "gdb \
@@ -128,7 +122,7 @@ nix.ddd.debug: ## Debug the project using DDD and nix-shell, attach to localhost
 
 nix.qemuA8: bin/image.bin ## Run QEMU with ARMv7 architecture using nix-shell
 	nix-shell --run "qemu-system-arm \
-	-M realview-pb-a8 -m 64M \
+	-M realview-pb-a8 -m 512M \
 	-no-reboot -nographic \
 	-monitor telnet:127.0.0.1:1234,server,nowait \
 	-kernel $< -S -gdb tcp::2159"
